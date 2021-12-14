@@ -1,7 +1,7 @@
 import Constants from './constants';
 import { PlayerSearchResult, Project } from './typing';
 
-export async function formatSearchResultList(results: PlayerSearchResult[], project: Project): Promise<string> {
+export async function formatSearchResultList(name: string, project: Project, results: PlayerSearchResult[]): Promise<string> {
     let formatted: string;
     if (results.length > 0) {
         // Remove clan tags from names
@@ -38,7 +38,7 @@ export async function formatSearchResultList(results: PlayerSearchResult[], proj
         }
     }
     else {
-        formatted = 'Could not find any players by that name';
+        formatted = `Sorry, could not find any BF2 players who\'s name is/contains "${name}" on ${Constants.PROJECT_LABEL[project]}.`;
     }
 
     return formatted;
