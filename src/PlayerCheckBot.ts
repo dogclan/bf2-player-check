@@ -22,6 +22,8 @@ class PlayerCheckBot {
         this.commands = [search, summary];
 
         this.client.once('ready', () => {
+            this.client.user?.presence.set({status: 'online'});
+
             this.logger.info('Client is ready, registering commands');
             this.client.application?.commands.set(this.commands);
 
