@@ -26,7 +26,7 @@ export async function formatSearchResultList(results: PlayerSearchResult[], proj
 
         for (const player of players) {
             formatted += `${player.nick.padEnd(nameComlumnWidth, ' ') }   `;
-            formatted += `${player.pid.padEnd(pidColumnWidth, ' ') }\n`;
+            formatted += `${player.pid.padStart(pidColumnWidth, ' ') }\n`;
         }
 
         // End markdown embed
