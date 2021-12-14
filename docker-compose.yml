@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+  bot:
+    build: .
+    environment:
+      - TOKEN=your_discord_bot_token
+      - LOG_LEVEL=info
