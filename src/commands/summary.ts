@@ -30,7 +30,7 @@ export const summary: Command = {
     execute: async (interaction: CommandInteraction) => {
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
-        const url = `https://api.statbits.io/chatmsg/bf2/stats/${Project[project]}/players/${name}/summary-short-a`;
+        const url = `https://api.statbits.io/chatmsg/bf2/stats/${Project[project]}/players/${encodeURIComponent(name)}/summary-short-a`;
 
         try {
             const resp = await axios.get(url);

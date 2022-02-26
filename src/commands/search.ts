@@ -31,8 +31,13 @@ export const search: Command = {
     execute: async (interaction: CommandInteraction) => {
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
-        const url = `https://bf2-stats-jsonifier.cetteup.com/searchforplayers?nick=${name}&where=a&project=${Project[project]}`;
-        const resp = await axios.get(url);
+        const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/searchforplayers', {
+            params: {
+                nick: name,
+                where: 'a',
+                project: Project[project]
+            }
+        });
         await interaction.reply(await formatSearchResultList(name, project, resp.data.players));
     }
 };
