@@ -1,5 +1,5 @@
 import Constants from './constants';
-import { PlayerInfo, PlayerSearchResult, Project, WeaponStatsColumns } from './typing';
+import { PlayerInfo, PlayerSearchResult, Project, VehicleStatsColumns, WeaponStatsColumns } from './typing';
 import { ColorResolvable, MessageEmbed } from 'discord.js';
 import Config from './config';
 import moment from 'moment';
@@ -144,6 +144,76 @@ export function formatWeaponStats(name: string, project: Project, stats: PlayerI
         name: name,
         project: project,
         title: `Weapon stats for ${name} on ${Constants.PROJECT_LABEL[project as Project]}`,
+        description: formatted,
+        asOf: stats.asof,
+        lastBattle: stats.player.lbtl
+    });
+}
+
+export function formatVehicleStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+    const timeWithsFormatted = stats.grouped.vehicles.map((v) => {
+        const seconds = Number(v.tm);
+        return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
+    });
+    const kds = stats.grouped.vehicles.map((v) => {
+        const kd = Number(v.kl) / (Number(v.dt) || 1);
+        return kd.toFixed(2);
+    });
+
+    const columns: VehicleStatsColumns = {
+        category: {
+            width: longestStringLen(Constants.VEHICLE_CATEGORY_LABELS, 10),
+            heading: 'Category'
+        },
+        timeWith: {
+            width: longestStringLen(timeWithsFormatted, 7),
+            heading: 'Time'
+        },
+        kd: {
+            width: longestStringLen(kds, 5),
+            heading: 'K/D'
+        }
+    };
+
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    for (const key in columns) {
+        const column = columns[key];
+
+        // Add a few spaces of padding between tables
+        column.width = key == 'kd' ? column.width : column.width + 4;
+
+        formatted += column.heading.padEnd(column.width, ' ');
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    // Ignore fifth vehicle since it's values are always 0
+    for (const  [index, vehicleInfo] of stats.grouped.vehicles.filter((v) => v.id != 5).entries()) {
+        const timeWith = timeWithsFormatted[vehicleInfo.id];
+        const kd = kds[vehicleInfo.id];
+
+        // Use index here since it shifts due to the removal of vehicle 5
+        formatted += Constants.VEHICLE_CATEGORY_LABELS[index].padEnd(columns.category.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        formatted += kd.padEnd(columns.kd.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        name: name,
+        project: project,
+        title: `${name}'s vehicle stats`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl

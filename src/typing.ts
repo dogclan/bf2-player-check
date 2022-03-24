@@ -81,3 +81,9 @@ export type WeaponStatsColumns = Columns & {
     kd: Column
     accuracy: Column
 }
+
+export type VehicleStatsColumns = Columns & {
+    category: Column
+    timeWith: Column
+    kd: Column
+}

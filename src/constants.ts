@@ -28,4 +28,13 @@ export default abstract class Constants {
         'Explosives',
         'Grenade'
     ];
+
+    public static readonly VEHICLE_CATEGORY_LABELS = [
+        'Armor',
+        'Jet',
+        'Helicopter',
+        'Transport',
+        'Anti-Air',
+        'Ground-Def.'
+    ];
 }
