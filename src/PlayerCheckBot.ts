@@ -3,6 +3,7 @@ import { Logger } from 'tslog';
 import { Command } from './commands/typing';
 import { search } from './commands/search';
 import { summary } from './commands/summary';
+import { weapons } from './commands/weapons';
 import logger from './logger';
 
 class PlayerCheckBot {
@@ -16,13 +17,13 @@ class PlayerCheckBot {
     constructor(token: string) {
         this.token = token;
 
-        this.logger = logger.getChildLogger({ name: 'BotLogger'});
+        this.logger = logger.getChildLogger({ name: 'BotLogger' });
         this.client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-        this.commands = [search, summary];
+        this.commands = [search, summary, weapons];
 
         this.client.once('ready', () => {
-            this.client.user?.presence.set({status: 'online'});
+            this.client.user?.presence.set({ status: 'online' });
 
             this.logger.info('Client is ready, registering commands');
             this.client.application?.commands.set(this.commands);
@@ -49,7 +50,7 @@ class PlayerCheckBot {
         const slashCommand = this.commands.find(c => c.name === interaction.commandName);
 
         if (!slashCommand) {
-            interaction.followUp({ content: 'An error has occurred' });
+            await interaction.followUp({ content: 'An error has occurred' });
             return;
         }
 

@@ -12,4 +12,20 @@ export default abstract class Constants {
         [Project.playbf2]: 50,
         [Project.phoenix]: 20
     };
+    
+    public static readonly WEAPON_CATEGORY_LABELS = [
+        'Assault-Rifle',
+        'Grenade-Launcher',
+        'Carbine',
+        'Light Machine Gun',
+        'Sniper Rifle',
+        'Pistol',
+        'Anti-Tank',
+        'Sub-Machine Gun',
+        'Shotgun',
+        'Knife',
+        'Defibrillator',
+        'Explosives',
+        'Grenade'
+    ];
 }
