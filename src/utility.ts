@@ -220,6 +220,74 @@ export function formatVehicleStats(name: string, project: Project, stats: Player
     });
 }
 
+export function formatKitStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+    const timeWithsFormatted = stats.grouped.classes.map((c) => {
+        const seconds = Number(c.tm);
+        return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
+    });
+    const kds = stats.grouped.classes.map((c) => {
+        const kd = Number(c.kl) / (Number(c.dt) || 1);
+        return kd.toFixed(2);
+    });
+
+    const columns: VehicleStatsColumns = {
+        category: {
+            width: longestStringLen(Constants.KIT_LABELS, 10),
+            heading: 'Kit'
+        },
+        timeWith: {
+            width: longestStringLen(timeWithsFormatted, 7),
+            heading: 'Time'
+        },
+        kd: {
+            width: longestStringLen(kds, 5),
+            heading: 'K/D'
+        }
+    };
+
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    for (const key in columns) {
+        const column = columns[key];
+
+        // Add a few spaces of padding between tables
+        column.width = key == 'kd' ? column.width : column.width + 4;
+
+        formatted += column.heading.padEnd(column.width, ' ');
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    for (const classInfo of stats.grouped.classes) {
+        const timeWith = timeWithsFormatted[classInfo.id];
+        const kd = kds[classInfo.id];
+
+        formatted += Constants.KIT_LABELS[classInfo.id].padEnd(columns.category.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        formatted += kd.padEnd(columns.kd.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        name: name,
+        project: project,
+        title: `Kit stats for ${name} on ${Constants.PROJECT_LABEL[project as Project]}`,
+        description: formatted,
+        asOf: stats.asof,
+        lastBattle: stats.player.lbtl
+    });
+}
+
 export function createStatsEmbed({
     name,
     project,

@@ -37,4 +37,14 @@ export default abstract class Constants {
         'Anti-Air',
         'Ground-Def.'
     ];
+    
+    public static readonly KIT_LABELS = [
+        'Anti-Tank',
+        'Assault',
+        'Engineer',
+        'Medic',
+        'Spec-Ops',
+        'Support',
+        'Sniper'
+    ];
 }
