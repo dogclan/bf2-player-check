@@ -37,7 +37,7 @@ export async function formatSearchResultList(name: string, project: Project, res
         const nameComlumnWidth = longestName?.length || 10;
         const pidColumnWidth = longestPid?.length || 6;
         
-        formatted = `**Found ${results.length} player(s) on ${Constants.PROJECT_LABEL[project]}:**\n`;
+        formatted = `**Found ${results.length} player(s) on ${Constants.PROJECT_LABELS[project]}:**\n`;
 
         // Show "warning" of any results have been removed
         if (players.length < results.length) {
@@ -64,12 +64,12 @@ export async function formatSearchResultList(name: string, project: Project, res
         formatted += '```';
 
         // Add note about max results if limit was hit
-        if (results.length == Constants.PROJECT_RESULT_LIMIT[project]) {
-            formatted += `\n**Note:** Search returned the maximum number for results (${Constants.PROJECT_RESULT_LIMIT[project]})`;
+        if (results.length == Constants.PROJECT_RESULT_LIMITS[project]) {
+            formatted += `\n**Note:** Search returned the maximum number for results (${Constants.PROJECT_RESULT_LIMITS[project]})`;
         }
     }
     else {
-        formatted = `Sorry, could not find any BF2 players who's name is/contains "${name}" on ${Constants.PROJECT_LABEL[project]}.`;
+        formatted = `Sorry, could not find any BF2 players who's name is/contains "${name}" on ${Constants.PROJECT_LABELS[project]}.`;
     }
 
     return formatted;
@@ -112,8 +112,8 @@ export function formatWeaponStats(name: string, project: Project, stats: PlayerI
     for (const key in columns) {
         const column = columns[key];
 
-        // Add three spaces of padding between tables
-        column.width = key == 'accuracy' ? column.width : column.width + 3;
+        // Add a few spaces of padding between tables
+        column.width = key == 'accuracy' ? column.width : column.width + 4;
 
         formatted += column.heading.padEnd(column.width, ' ');
         totalWidth += column.width;
@@ -143,7 +143,7 @@ export function formatWeaponStats(name: string, project: Project, stats: PlayerI
     return createStatsEmbed({
         name: name,
         project: project,
-        title: `Weapon stats for ${name} on ${Constants.PROJECT_LABEL[project as Project]}`,
+        title: `Weapon stats for ${name}`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl
@@ -213,7 +213,7 @@ export function formatVehicleStats(name: string, project: Project, stats: Player
     return createStatsEmbed({
         name: name,
         project: project,
-        title: `${name}'s vehicle stats`,
+        title: `Vehicle stats for ${name}`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl
@@ -281,7 +281,7 @@ export function formatKitStats(name: string, project: Project, stats: PlayerInfo
     return createStatsEmbed({
         name: name,
         project: project,
-        title: `Kit stats for ${name} on ${Constants.PROJECT_LABEL[project as Project]}`,
+        title: `Kit stats for ${name}`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl
@@ -305,9 +305,15 @@ export function createStatsEmbed({
     ]);
     embed.setDescription(description);
 
+    let authorUrl: string;
     if (project == Project.bf2hub) {
-        embed.setURL(`https://www.bf2hub.com/player/${name}`);
+        // Use player stats page URL for BF2Hub
+        authorUrl = `https://www.bf2hub.com/player/${name}`;
     }
+    else {
+        authorUrl = Constants.PROJECT_WEBSITES[project];
+    }
+    embed.setAuthor({ name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: authorUrl });
 
     return embed;
 }

@@ -15,8 +15,8 @@ export const kits: Command = {
             description: 'GameSpy-replacement project the player is using',
             type: ApplicationCommandOptionTypes.INTEGER,
             choices: [
-                { name: Constants.PROJECT_LABEL[Project.bf2hub], value: Project.bf2hub },
-                { name: Constants.PROJECT_LABEL[Project.playbf2], value: Project.playbf2 },
+                { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
+                { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
             ],
             required: true
         },
@@ -39,7 +39,7 @@ export const kits: Command = {
         }
         catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {
-                await interaction.editReply(`Sorry, could not find a BF2 player called "${name}" on ${Constants.PROJECT_LABEL[project as Project]}.`);
+                await interaction.editReply(`Sorry, could not find a BF2 player called "${name}" on ${Constants.PROJECT_LABELS[project as Project]}.`);
                 return;
             }
             else {

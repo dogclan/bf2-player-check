@@ -15,8 +15,8 @@ export const search: Command = {
             description: 'GameSpy-replacement project to search',
             type: ApplicationCommandOptionTypes.INTEGER,
             choices: [
-                { name: Constants.PROJECT_LABEL[Project.bf2hub], value: Project.bf2hub },
-                { name: Constants.PROJECT_LABEL[Project.playbf2], value: Project.playbf2 },
+                { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
+                { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
             ],
             required: true
         },
