@@ -33,7 +33,7 @@ export function secondsToRemainderMinutes(num: number): number {
 export function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): MessageEmbed {
     let formatted: string;
     const fields: EmbedFieldData[] = [
-        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD hh:mm:ss'), inline: true },
+        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
     ];
     const players = data.players
         // Remove clan tags from names
@@ -359,8 +359,8 @@ export function createStatsEmbed({
     lastBattle
 }: { name: string, project: Project, title: string, description: string, asOf: string, lastBattle: string }): MessageEmbed {
     const fields = [
-        { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD hh:mm:ss'), inline: true },
-        { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD hh:mm:ss'), inline: true }
+        { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
     let authorUrl: string;
     if (project == Project.bf2hub) {
