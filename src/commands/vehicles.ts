@@ -5,6 +5,7 @@ import Constants from '../constants';
 import { Project } from '../typing';
 import { Command } from './typing';
 import { formatVehicleStats } from '../utility';
+import cmdLogger from './logger';
 
 export const vehicles: Command = {
     name: 'vehicles',
@@ -43,18 +44,26 @@ export const vehicles: Command = {
                 return;
             }
             else {
-                throw e;
+                cmdLogger.error('Persona resolution request failed', name, Project[project], e?.response?.status, e?.code);
+                await interaction.editReply(`Sorry, failed to resolve pid for ${name} on ${Constants.PROJECT_LABELS[project as Project]}.`);
+                return;
             }
         }
 
-        const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
-            params: {
-                pid: pid,
-                groupValues: 1,
-                project: Project[project]
-            }
-        });
-        const embed = formatVehicleStats(name, project, resp.data);
-        await interaction.editReply({ embeds: [embed] });
+        try {
+            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
+                params: {
+                    pid: pid,
+                    groupValues: 1,
+                    project: Project[project]
+                }
+            });
+            const embed = formatVehicleStats(name, project, resp.data);
+            await interaction.editReply({ embeds: [embed] });
+        }
+        catch (e: any) {
+            cmdLogger.error('Failed to fetch player info for', name, Project[project], e?.response?.status, e?.code);
+            await interaction.editReply(`Sorry, failed to fetch stats for ${name} from ${Constants.PROJECT_LABELS[project as Project]}.`);
+        }
     }
 };

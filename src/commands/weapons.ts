@@ -5,6 +5,7 @@ import Constants from '../constants';
 import { Project } from '../typing';
 import { Command } from './typing';
 import { formatWeaponStats } from '../utility';
+import cmdLogger from './logger';
 
 export const weapons: Command = {
     name: 'weapons',
@@ -43,7 +44,9 @@ export const weapons: Command = {
                 return;
             }
             else {
-                throw e;
+                cmdLogger.error('Persona resolution request failed', name, Project[project], e?.response?.status, e?.code);
+                await interaction.editReply(`Sorry, failed to resolve pid for ${name} on ${Constants.PROJECT_LABELS[project as Project]}.`);
+                return;
             }
         }
 
@@ -59,12 +62,8 @@ export const weapons: Command = {
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
-            if (e.isAxiosError && e?.response?.data) {
-                await interaction.editReply(e.response.data?.errors);
-            }
-            else {
-                throw e;
-            }
+            cmdLogger.error('Failed to fetch player info for', name, Project[project], e?.response?.status, e?.code);
+            await interaction.editReply(`Sorry, failed to fetch stats for ${name} from ${Constants.PROJECT_LABELS[project as Project]}.`);
         }
     }
 };

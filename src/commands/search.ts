@@ -45,7 +45,8 @@ export const search: Command = {
         }
         catch (e: any) {
             cmdLogger.error('Player search request failed', name, Project[project], e?.response?.status, e?.code);
-            throw e;
+            await interaction.editReply(`Sorry, search for "${name}" on ${Constants.PROJECT_LABELS[project as Project]} failed.`);
+            return;
         }
 
         const servers: BflistServer[] = [];
