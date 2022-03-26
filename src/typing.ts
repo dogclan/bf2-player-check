@@ -4,11 +4,25 @@ export enum Project {
     phoenix
 }
 
+export type PlayerSearch = {
+    asof: string
+    players: PlayerSearchResult[]
+}
+
 export type PlayerSearchResult = {
     n: string;
     pid: string;
     nick: string;
     score: string;
+}
+
+export type EnrichedPlayerSearch = {
+    asof: string
+    players: EnrichedPlayerSearchResult[]
+}
+
+export type EnrichedPlayerSearchResult = PlayerSearchResult & {
+    currentServer?: string
 }
 
 export type PlayerInfo = {
@@ -73,6 +87,12 @@ export type Columns = {
 export type Column = {
     heading: string
     width: number
+}
+
+export type SearchColumns = Columns & {
+    name: Column
+    pid: Column
+    currentServer: Column
 }
 
 export type WeaponStatsColumns = Columns & {

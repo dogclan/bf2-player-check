@@ -2,7 +2,7 @@ import axios from 'axios';
 import { CommandInteraction } from 'discord.js';
 import { ApplicationCommandOptionTypes } from 'discord.js/typings/enums';
 import Constants from '../constants';
-import { Project } from '../typing';
+import { EnrichedPlayerSearchResult, PlayerSearch, Project } from '../typing';
 import { formatSearchResultList } from '../utility';
 import { Command } from './typing';
 
@@ -28,6 +28,7 @@ export const search: Command = {
         }
     ],
     execute: async (interaction: CommandInteraction) => {
+        await interaction.deferReply();
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
         const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/searchforplayers', {
@@ -37,6 +38,21 @@ export const search: Command = {
                 project: Project[project]
             }
         });
-        await interaction.reply(await formatSearchResultList(name, project, resp.data.players));
+        const data = resp.data as PlayerSearch;
+        const promises: Promise<EnrichedPlayerSearchResult>[] = data.players.map(async (p): Promise<EnrichedPlayerSearchResult> => {
+            try {
+                const resp = await axios.get(`https://api.bflist.io/bf2/v1/players/${encodeURIComponent(p.nick)}/server/name`);
+                return { ...p, currentServer: resp.data };
+            }
+            catch(e: any) {
+                if (axios.isAxiosError(e) && e?.response?.status != 404) {
+                    console.log(`${p.nick} is not playing`);
+                }
+                return p;
+            }
+        });
+        const enriched = await Promise.all(promises);
+        const embed = formatSearchResultList(name, project, { asof: data.asof, players: enriched });
+        await interaction.editReply({ embeds: [embed] });
     }
 };

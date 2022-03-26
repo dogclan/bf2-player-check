@@ -1,12 +1,19 @@
 import Constants from './constants';
-import { PlayerInfo, PlayerSearchResult, Project, VehicleStatsColumns, WeaponStatsColumns } from './typing';
-import { ColorResolvable, MessageEmbed } from 'discord.js';
+import {
+    EnrichedPlayerSearch,
+    PlayerInfo,
+    Project,
+    SearchColumns,
+    VehicleStatsColumns,
+    WeaponStatsColumns
+} from './typing';
+import { ColorResolvable, EmbedAuthorData, EmbedFieldData, MessageEmbed } from 'discord.js';
 import Config from './config';
 import moment from 'moment';
 
 export function longestStringLen(strings: string[], fallback: number): number {
     const longest = strings.slice().sort((a, b) => a.length - b.length).pop();
-    return longest?.length ?? fallback;
+    return longest?.length || fallback;
 }
 
 /**
@@ -23,56 +30,94 @@ export function secondsToRemainderMinutes(num: number): number {
     return Math.floor(num / 60) % 60;
 }
 
-export async function formatSearchResultList(name: string, project: Project, results: PlayerSearchResult[]): Promise<string> {
+export function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): MessageEmbed {
     let formatted: string;
-    if (results.length > 0) {
-        const players = results
+    const fields: EmbedFieldData[] = [
+        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD hh:mm:ss'), inline: true },
+    ];
+    const players = data.players
         // Remove clan tags from names
-            .map((player) => ({ ...player, 'nick': player.nick.split(' ').pop() || player.nick }))
+        .map((player) => ({ ...player, 'nick': player.nick.trim().split(' ').pop() || player.nick }))
         // Filter out players who's clan tag matches but actual name does match the given name
-            .filter((player) => player.nick.toLowerCase().includes(name.toLowerCase()));
+        .filter((player) => player.nick.toLowerCase().includes(name.toLowerCase()));
+    if (players.length > 0) {
+        const serverNames = players.map((p) => {
+            let serverName = p.currentServer?.trim() || '';
+            if (serverName.length > 18) {
+                serverName = `${serverName.substring(0, 15)}...`;
+            }
+            return serverName;
+        });
 
-        const longestName = players.slice().sort((a, b) => a.nick.length - b.nick.length).pop()?.nick;
-        const longestPid = players.slice().sort((a, b) => a.pid.length - b.pid.length).pop()?.pid;
-        const nameComlumnWidth = longestName?.length || 10;
-        const pidColumnWidth = longestPid?.length || 6;
-        
-        formatted = `**Found ${results.length} player(s) on ${Constants.PROJECT_LABELS[project]}:**\n`;
-
-        // Show "warning" of any results have been removed
-        if (players.length < results.length) {
-            formatted += '*Some results are not shown because only the player\'s tag matched the given name.*\n';
-        }
+        // Leave a few spaces between columns
+        const padding = 3;
+        const columns: SearchColumns = {
+            name: {
+                width: longestStringLen(players.map((p) => p.nick), 10),
+                heading: 'Name'
+            },
+            pid: {
+                width: longestStringLen(players.map((p) => p.pid), 6),
+                heading: 'PID'
+            },
+            currentServer: {
+                width: longestStringLen(serverNames, 13),
+                heading: 'Playing on'
+            }
+        };
 
         // Start markdown embed
-        formatted += '```\n';
+        formatted = '```\n';
 
         // Add table headers
-        formatted += `${'Name'.padEnd(nameComlumnWidth, ' ')}   `;
-        formatted += `${'PID'.padEnd(pidColumnWidth, ' ')}\n`;
+        let totalWidth = 0;
+        for (const key in columns) {
+            const column = columns[key];
+
+            // Add a few spaces of padding between tables
+            column.width = key == 'currentServer' ? column.width : column.width + padding;
+
+            formatted += column.heading.padEnd(column.width, ' ');
+            totalWidth += column.width;
+        }
+
+        formatted += '\n';
 
         // Add separator
-        const headerLength = 3 + nameComlumnWidth + pidColumnWidth;
-        formatted += `${'-'.padEnd(headerLength, '-')}\n`;
+        formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-        for (const player of players) {
-            formatted += `${player.nick.padEnd(nameComlumnWidth, ' ') }   `;
-            formatted += `${player.pid.padStart(pidColumnWidth, ' ') }\n`;
+        for (const [index, player] of players.entries()) {
+            const serverName = serverNames[index];
+
+            formatted += `${player.nick.padEnd(columns.name.width, ' ') }`;
+            // Align pid to the right for better readability
+            formatted += `${player.pid.padStart(columns.pid.width - padding, ' ') }${''.padEnd(padding, ' ')}`;
+            formatted += `${serverName.padEnd(columns.currentServer.width, ' ') }\n`;
         }
 
         // End markdown embed
         formatted += '```';
 
-        // Add note about max results if limit was hit
-        if (results.length == Constants.PROJECT_RESULT_LIMITS[project]) {
-            formatted += `\n**Note:** Search returned the maximum number for results (${Constants.PROJECT_RESULT_LIMITS[project]})`;
-        }
+        fields.push({
+            name: 'Results',
+            value: players.length.toString(),
+            inline: true
+        }, {
+            name: 'Results max.',
+            value: Constants.PROJECT_RESULT_LIMITS[project].toString(),
+            inline: true
+        });
     }
     else {
-        formatted = `Sorry, could not find any BF2 players who's name is/contains "${name}" on ${Constants.PROJECT_LABELS[project]}.`;
+        formatted = `Sorry, could not find any BF2 players who's name is/contains "${name}".`;
     }
 
-    return formatted;
+    return createEmbed({
+        title: `Search results for "${name}"`,
+        description: formatted,
+        fields,
+        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: Constants.PROJECT_WEBSITES[project] }
+    });
 }
 
 export function formatWeaponStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
@@ -288,6 +333,23 @@ export function formatKitStats(name: string, project: Project, stats: PlayerInfo
     });
 }
 
+export function createEmbed({
+    title,
+    description,
+    fields,
+    author
+}: { title: string, description: string, fields: EmbedFieldData[], author: EmbedAuthorData }): MessageEmbed {
+    const embed = new MessageEmbed({
+        title,
+        description,
+        fields,
+        author
+    });
+    embed.setColor(Config.EMBED_COLOR as ColorResolvable);
+
+    return embed;
+}
+
 export function createStatsEmbed({
     name,
     project,
@@ -296,15 +358,10 @@ export function createStatsEmbed({
     asOf,
     lastBattle
 }: { name: string, project: Project, title: string, description: string, asOf: string, lastBattle: string }): MessageEmbed {
-    const embed = new MessageEmbed();
-    embed.setColor(Config.EMBED_COLOR as ColorResolvable);
-    embed.setTitle(title);
-    embed.addFields([
+    const fields = [
         { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD hh:mm:ss'), inline: true },
         { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD hh:mm:ss'), inline: true }
-    ]);
-    embed.setDescription(description);
-
+    ];
     let authorUrl: string;
     if (project == Project.bf2hub) {
         // Use player stats page URL for BF2Hub
@@ -313,7 +370,12 @@ export function createStatsEmbed({
     else {
         authorUrl = Constants.PROJECT_WEBSITES[project];
     }
-    embed.setAuthor({ name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: authorUrl });
+    const author: EmbedAuthorData = { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: authorUrl };
 
-    return embed;
+    return createEmbed({
+        title,
+        description,
+        fields,
+        author
+    });
 }
