@@ -107,3 +107,13 @@ export type VehicleStatsColumns = Columns & {
     timeWith: Column
     kd: Column
 }
+
+export type BflistServer = {
+    name: string
+    players: BflistPlayer[]
+}
+
+export type BflistPlayer = {
+    pid: number
+    name: string
+}
