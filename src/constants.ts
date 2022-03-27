@@ -41,9 +41,9 @@ export default abstract class Constants {
     public static readonly VEHICLE_CATEGORY_LABELS = [
         'Armor',
         'Jet',
+        'Anti-Air',
         'Helicopter',
         'Transport',
-        'Anti-Air',
         'Ground-Def.'
     ];
     
