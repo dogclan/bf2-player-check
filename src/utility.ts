@@ -421,8 +421,8 @@ export function createStatsEmbed({
     lastBattle
 }: { name: string, project: Project, title: string, description: string, asOf: string, lastBattle: string }): MessageEmbed {
     const fields = [
-        { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
-        { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
+        { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
     const author: EmbedAuthorData = { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: getAuthorUrl(name, project) };
 
