@@ -3,8 +3,8 @@ import {
     EnrichedPlayerSearch,
     PlayerInfo,
     Project,
-    SearchColumns,
-    VehicleStatsColumns,
+    SearchColumns, VehicleInfo,
+    VehicleStatsColumns, WeaponInfo,
     WeaponStatsColumns
 } from './typing';
 import { ColorResolvable, EmbedAuthorData, EmbedFieldData, MessageEmbed } from 'discord.js';
@@ -28,6 +28,35 @@ export function secondsToHours(num: number): number {
  */
 export function secondsToRemainderMinutes(num: number): number {
     return Math.floor(num / 60) % 60;
+}
+
+export function formatTimePlayed(seconds: number): string {
+    return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
+}
+
+export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo>(entries: T[], invalidIds: number[]): T[] {
+    const filtered = entries.filter((e) => !invalidIds.includes(e.id));
+    // Rewrite ids (which are just the index)
+    const valid: T[] = [];
+    for (const [index, entry] of filtered.entries()) {
+        // Copy object instead of changing original one
+        valid.push({ ...entry, id: index });
+    }
+
+    return valid;
+}
+
+export function getAuthorUrl(name: string, project: Project): string {
+    let authorUrl: string;
+    if (project == Project.bf2hub) {
+        // Use player stats page URL for BF2Hub
+        authorUrl = `https://www.bf2hub.com/player/${name}`;
+    }
+    else {
+        authorUrl = Constants.PROJECT_WEBSITES[project];
+    }
+
+    return authorUrl;
 }
 
 export function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): MessageEmbed {
@@ -121,11 +150,13 @@ export function formatSearchResultList(name: string, project: Project, data: Enr
 }
 
 export function formatWeaponStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
-    const timeWithsFormatted = stats.grouped.weapons.map((w) => {
+    // Skip last weapon category since it's stats are always 0
+    const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
+    const timeWithsFormatted = weapons.map((w) => {
         const seconds = Number(w.tm);
-        return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
+        return formatTimePlayed(seconds);
     });
-    const kds = stats.grouped.weapons.map((w) => {
+    const kds = weapons.map((w) => {
         const kd = Number(w.kl) / (Number(w.dt) || 1);
         return kd.toFixed(2);
     });
@@ -169,8 +200,7 @@ export function formatWeaponStats(name: string, project: Project, stats: PlayerI
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    // Skip last weapon category since it's stats are always 0
-    for (const weaponInfo of stats.grouped.weapons.slice(0, stats.grouped.weapons.length - 1)) {
+    for (const weaponInfo of weapons) {
         const timeWith = timeWithsFormatted[weaponInfo.id];
         const kd = kds[weaponInfo.id];
         const accuracy = `${Number(weaponInfo.ac).toFixed(2)}%`;
@@ -196,11 +226,13 @@ export function formatWeaponStats(name: string, project: Project, stats: PlayerI
 }
 
 export function formatVehicleStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
-    const timeWithsFormatted = stats.grouped.vehicles.map((v) => {
+    // Ignore fifth vehicle since it's values are always 0
+    const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
+    const timeWithsFormatted = vehicles.map((v) => {
         const seconds = Number(v.tm);
-        return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
+        return formatTimePlayed(seconds);
     });
-    const kds = stats.grouped.vehicles.map((v) => {
+    const kds = vehicles.map((v) => {
         const kd = Number(v.kl) / (Number(v.dt) || 1);
         return kd.toFixed(2);
     });
@@ -240,13 +272,11 @@ export function formatVehicleStats(name: string, project: Project, stats: Player
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    // Ignore fifth vehicle since it's values are always 0
-    for (const  [index, vehicleInfo] of stats.grouped.vehicles.filter((v) => v.id != 5).entries()) {
+    for (const vehicleInfo of vehicles) {
         const timeWith = timeWithsFormatted[vehicleInfo.id];
         const kd = kds[vehicleInfo.id];
 
-        // Use index here since it shifts due to the removal of vehicle 5
-        formatted += Constants.VEHICLE_CATEGORY_LABELS[index].padEnd(columns.category.width);
+        formatted += Constants.VEHICLE_CATEGORY_LABELS[vehicleInfo.id].padEnd(columns.category.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
         formatted += kd.padEnd(columns.kd.width);
         formatted += '\n';
@@ -268,7 +298,7 @@ export function formatVehicleStats(name: string, project: Project, stats: Player
 export function formatKitStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
     const timeWithsFormatted = stats.grouped.classes.map((c) => {
         const seconds = Number(c.tm);
-        return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
+        return formatTimePlayed(seconds);
     });
     const kds = stats.grouped.classes.map((c) => {
         const kd = Number(c.kl) / (Number(c.dt) || 1);

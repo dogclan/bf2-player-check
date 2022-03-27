@@ -21,6 +21,12 @@ export default abstract class Constants {
         [Project.playbf2]: 50,
         [Project.phoenix]: 20
     };
+
+    // Not a single player has stats for weapon 13 + could not find any reference
+    public static readonly INVALID_WEAPON_IDS = [13];
+    // Some early accounts have stats for this, this may have tracked artillery kills back in the day
+    // (https://dribibu.xs4all.nl/home-en/26-website/199-battlefield2statssignaturegenerator.html)
+    public static readonly INVALID_VEHICLE_IDS = [5];
     
     public static readonly WEAPON_CATEGORY_LABELS = [
         'Assault-Rifle',
