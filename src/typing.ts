@@ -43,6 +43,11 @@ export type PlayerInfo = {
         time: string
         wins: string
         loss: string
+        kill: string
+        deth: string
+        ospm: string
+        klpm: string
+        osaa: string
     }
 }
 

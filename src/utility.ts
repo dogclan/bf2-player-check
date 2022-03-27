@@ -363,6 +363,38 @@ export function formatKitStats(name: string, project: Project, stats: PlayerInfo
     });
 }
 
+export function formatStatsSummary(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+    const bestClassId = stats.grouped.classes.slice().sort((a, b) => Number(a.kl) - Number(b.kl)).pop()?.id ?? 1;
+    const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
+    const bestVehicleId = vehicles.slice().sort((a, b) => Number(a.kl) - Number(b.kl)).pop()?.id ?? 5;
+    const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
+    const bestWeaponId = weapons.slice().sort((a, b) => Number(a.kl) - Number(b.kl)).pop()?.id ?? 5;
+    const fields: EmbedFieldData[] = [
+        { name: 'Time', value: formatTimePlayed(Number(stats.player.time)), inline: true },
+        { name: 'Score per minute', value: Number(stats.player.ospm).toFixed(2), inline: true },
+        { name: 'Kills per minute', value: Number(stats.player.klpm).toFixed(2), inline: true },
+        { name: 'K/D', value: (Number(stats.player.kill) / (Number(stats.player.deth) || 1)).toFixed(2), inline: true },
+        { name: 'Accuracy', value: `${Number(stats.player.osaa).toFixed(2)}%`, inline: true },
+        { name: 'Enlisted', value: moment(Number(stats.player.jond) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Best kit', value: Constants.KIT_LABELS[bestClassId], inline: true },
+        { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
+        { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
+        { name: 'Last battle', value: moment(Number(stats.player.lbtl) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'As of', value: moment(Number(stats.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+    ];
+
+    const embed = createEmbed({
+        title: `Stats summary for ${name}`,
+        description: '',
+        fields,
+        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: getAuthorUrl(name, project) }
+    });
+
+    embed.setThumbnail(`https://www.bf2hub.com/home/images/ranks/rank_${stats.player.rank}.png`);
+
+    return embed;
+}
+
 export function createEmbed({
     title,
     description,
@@ -392,15 +424,7 @@ export function createStatsEmbed({
         { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
         { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
-    let authorUrl: string;
-    if (project == Project.bf2hub) {
-        // Use player stats page URL for BF2Hub
-        authorUrl = `https://www.bf2hub.com/player/${name}`;
-    }
-    else {
-        authorUrl = Constants.PROJECT_WEBSITES[project];
-    }
-    const author: EmbedAuthorData = { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: authorUrl };
+    const author: EmbedAuthorData = { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: getAuthorUrl(name, project) };
 
     return createEmbed({
         title,
