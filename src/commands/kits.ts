@@ -35,7 +35,7 @@ export const kits: Command = {
         const name = interaction.options.getString('name', true);
         let pid: number;
         try {
-            const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${name}`);
+            const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${encodeURIComponent(name)}`);
             pid = resp.data.pid;
         }
         catch (e: any) {
