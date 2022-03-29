@@ -1,5 +1,6 @@
 import Constants from './constants';
 import {
+    ClassInfo,
     EnrichedPlayerSearch,
     PlayerInfo,
     Project,
@@ -44,6 +45,14 @@ export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo>(entries
     }
 
     return valid;
+}
+
+export function sortByKillsAndTimeAsc<T extends ClassInfo | WeaponInfo | VehicleInfo>(a: T, b: T): number {
+    const n = Number(a.kl) - Number(b.kl);
+    if (n != 0) {
+        return n;
+    }
+    return Number(a.tm) - Number(b.tm);
 }
 
 export function getAuthorUrl(name: string, project: Project): string {
@@ -364,11 +373,11 @@ export function formatKitStats(name: string, project: Project, stats: PlayerInfo
 }
 
 export function formatStatsSummary(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
-    const bestClassId = stats.grouped.classes.slice().sort((a, b) => Number(a.kl) - Number(b.kl)).pop()?.id ?? 1;
+    const bestClassId = stats.grouped.classes.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
     const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
-    const bestVehicleId = vehicles.slice().sort((a, b) => Number(a.kl) - Number(b.kl)).pop()?.id ?? 5;
+    const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
     const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
-    const bestWeaponId = weapons.slice().sort((a, b) => Number(a.kl) - Number(b.kl)).pop()?.id ?? 5;
+    const bestWeaponId = weapons.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
     const fields: EmbedFieldData[] = [
         { name: 'Time', value: formatTimePlayed(Number(stats.player.time)), inline: true },
         { name: 'Score per minute', value: Number(stats.player.ospm).toFixed(2), inline: true },
