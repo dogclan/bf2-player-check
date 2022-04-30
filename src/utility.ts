@@ -399,7 +399,7 @@ export function formatStatsSummary(name: string, project: Project, stats: Player
         author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: getAuthorUrl(name, project) }
     });
 
-    embed.setThumbnail(`https://www.bf2hub.com/home/images/ranks/rank_${stats.player.rank}.png`);
+    embed.setThumbnail(`https://cdn.gametools.network/bf2/${stats.player.rank}.png`);
 
     return embed;
 }
