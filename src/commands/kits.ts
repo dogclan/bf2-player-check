@@ -2,7 +2,7 @@ import axios from 'axios';
 import { CommandInteraction } from 'discord.js';
 import { ApplicationCommandOptionTypes } from 'discord.js/typings/enums';
 import Constants from '../constants';
-import { Project } from '../typing';
+import { Player, Project } from '../typing';
 import { Command } from './typing';
 import { formatKitStats } from '../utility';
 import cmdLogger from './logger';
@@ -33,10 +33,15 @@ export const kits: Command = {
         await interaction.deferReply();
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
-        let pid: number;
+
+        let player: Player;
         try {
             const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${encodeURIComponent(name)}`);
-            pid = resp.data.pid;
+            player = {
+                pid: resp.data.pid,
+                name: resp.data.name,
+                project: project
+            };
         }
         catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {
@@ -53,17 +58,17 @@ export const kits: Command = {
         try {
             const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
                 params: {
-                    pid: pid,
+                    pid: player.pid,
                     groupValues: 1,
-                    project: Project[project]
+                    project: Project[player.project]
                 }
             });
-            const embed = formatKitStats(name, project, resp.data);
+            const embed = formatKitStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
-            cmdLogger.error('Failed to fetch player info for', name, Project[project], e?.response?.status, e?.code);
-            await interaction.editReply(`Sorry, failed to fetch stats for ${name} from ${Constants.PROJECT_LABELS[project as Project]}.`);
+            cmdLogger.error('Failed to fetch player info for', player.name, Project[player.project], e?.response?.status, e?.code);
+            await interaction.editReply(`Sorry, failed to fetch stats for ${player.name} from ${Constants.PROJECT_LABELS[player.project]}.`);
         }
     }
 };

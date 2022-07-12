@@ -25,6 +25,12 @@ export type EnrichedPlayerSearchResult = PlayerSearchResult & {
     currentServer?: string
 }
 
+export type Player = {
+    pid: number
+    name: string
+    project: Project
+}
+
 export type PlayerInfo = {
     asof: string
     grouped: {

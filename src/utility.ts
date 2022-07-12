@@ -1,7 +1,7 @@
 import Constants from './constants';
 import {
     ClassInfo,
-    EnrichedPlayerSearch,
+    EnrichedPlayerSearch, Player,
     PlayerInfo,
     Project,
     SearchColumns, VehicleInfo,
@@ -55,17 +55,16 @@ export function sortByKillsAndTimeAsc<T extends ClassInfo | WeaponInfo | Vehicle
     return Number(a.tm) - Number(b.tm);
 }
 
-export function getAuthorUrl(name: string, project: Project): string {
-    let authorUrl: string;
-    if (project == Project.bf2hub) {
-        // Use player stats page URL for BF2Hub
-        authorUrl = `https://www.bf2hub.com/player/${name}`;
+export function getAuthorUrl(player: Player): string {
+    switch (player.project) {
+        case Project.bf2hub:
+            // Use player stats page URL for BF2Hub
+            return `https://www.bf2hub.com/player/${player.name}`;
+        case Project.playbf2:
+            return `http://bf2.tgamer.ru/stats/?pid=${player.pid}`;
+        default:
+            return Constants.PROJECT_WEBSITES[player.project];
     }
-    else {
-        authorUrl = Constants.PROJECT_WEBSITES[project];
-    }
-
-    return authorUrl;
 }
 
 export function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): MessageEmbed {
@@ -158,7 +157,7 @@ export function formatSearchResultList(name: string, project: Project, data: Enr
     });
 }
 
-export function formatWeaponStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+export function formatWeaponStats(player: Player, stats: PlayerInfo): MessageEmbed {
     // Skip last weapon category since it's stats are always 0
     const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
     const timeWithsFormatted = weapons.map((w) => {
@@ -225,16 +224,15 @@ export function formatWeaponStats(name: string, project: Project, stats: PlayerI
     formatted += '```';
 
     return createStatsEmbed({
-        name: name,
-        project: project,
-        title: `Weapon stats for ${name}`,
+        player: player,
+        title: `Weapon stats for ${player.name}`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl
     });
 }
 
-export function formatVehicleStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+export function formatVehicleStats(Player: Player, stats: PlayerInfo): MessageEmbed {
     // Ignore fifth vehicle since it's values are always 0
     const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
     const timeWithsFormatted = vehicles.map((v) => {
@@ -295,16 +293,15 @@ export function formatVehicleStats(name: string, project: Project, stats: Player
     formatted += '```';
 
     return createStatsEmbed({
-        name: name,
-        project: project,
-        title: `Vehicle stats for ${name}`,
+        player: Player,
+        title: `Vehicle stats for ${Player.name}`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl
     });
 }
 
-export function formatKitStats(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+export function formatKitStats(player: Player, stats: PlayerInfo): MessageEmbed {
     const timeWithsFormatted = stats.grouped.classes.map((c) => {
         const seconds = Number(c.tm);
         return formatTimePlayed(seconds);
@@ -363,16 +360,15 @@ export function formatKitStats(name: string, project: Project, stats: PlayerInfo
     formatted += '```';
 
     return createStatsEmbed({
-        name: name,
-        project: project,
-        title: `Kit stats for ${name}`,
+        player: player,
+        title: `Kit stats for ${player.name}`,
         description: formatted,
         asOf: stats.asof,
         lastBattle: stats.player.lbtl
     });
 }
 
-export function formatStatsSummary(name: string, project: Project, stats: PlayerInfo): MessageEmbed {
+export function formatStatsSummary(player: Player, stats: PlayerInfo): MessageEmbed {
     const bestClassId = stats.grouped.classes.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
     const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
     const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
@@ -393,10 +389,14 @@ export function formatStatsSummary(name: string, project: Project, stats: Player
     ];
 
     const embed = createEmbed({
-        title: `Stats summary for ${name}`,
+        title: `Stats summary for ${player.name}`,
         description: '',
         fields,
-        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: getAuthorUrl(name, project) }
+        author: {
+            name: Constants.PROJECT_LABELS[player.project],
+            iconURL: Constants.PROJECT_ICONS[player.project],
+            url: getAuthorUrl(player)
+        }
     });
 
     embed.setThumbnail(`https://cdn.gametools.network/bf2/${stats.player.rank}.png`);
@@ -422,18 +422,21 @@ export function createEmbed({
 }
 
 export function createStatsEmbed({
-    name,
-    project,
+    player,
     title,
     description,
     asOf,
     lastBattle
-}: { name: string, project: Project, title: string, description: string, asOf: string, lastBattle: string }): MessageEmbed {
+}: { player: Player, title: string, description: string, asOf: string, lastBattle: string }): MessageEmbed {
     const fields = [
         { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
         { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
-    const author: EmbedAuthorData = { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: getAuthorUrl(name, project) };
+    const author: EmbedAuthorData = {
+        name: Constants.PROJECT_LABELS[player.project],
+        iconURL: Constants.PROJECT_ICONS[player.project],
+        url: getAuthorUrl(player)
+    };
 
     return createEmbed({
         title,
