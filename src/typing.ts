@@ -4,6 +4,21 @@ export enum Project {
     phoenix
 }
 
+export enum LeaderboardCategory {
+    score = 0,
+    weapon,
+    vehicle,
+    kit
+}
+
+export enum LeaderboardScoreType {
+    overall = 0,
+    risingstar,
+    commander,
+    team,
+    combat
+}
+
 export type PlayerSearch = {
     asof: string
     players: PlayerSearchResult[]
@@ -91,6 +106,20 @@ export type WeaponInfo = {
     kd: string
 }
 
+export type PlayerLeaderboard = {
+    size: string
+    asof: string
+    players: PlayerLeaderboardEntry[]
+}
+
+export type PlayerLeaderboardEntry = {
+    n: string
+    pid: string
+    nick: string
+    playerrank: string
+    countrycode: string
+}
+
 export type Columns = {
     [key: string]: Column
 }
@@ -117,6 +146,12 @@ export type VehicleStatsColumns = Columns & {
     category: Column
     timeWith: Column
     kd: Column
+}
+
+export type LeaderboardColumns = Columns & {
+    position: Column
+    name: Column
+    country: Column
 }
 
 export type BflistServer = {

@@ -1,4 +1,4 @@
-import { Project } from './typing';
+import { LeaderboardCategory, LeaderboardScoreType, Project } from './typing';
 
 export default abstract class Constants {
     public static readonly PROJECT_LABELS = {
@@ -27,6 +27,8 @@ export default abstract class Constants {
     // Some early accounts have stats for this, this may have tracked artillery kills back in the day
     // (https://dribibu.xs4all.nl/home-en/26-website/199-battlefield2statssignaturegenerator.html)
     public static readonly INVALID_VEHICLE_IDS = [5];
+
+    public static readonly LEADERBOARD_PER_PAGE = 20;
     
     public static readonly WEAPON_CATEGORY_LABELS = [
         'Assault-Rifle',
@@ -62,4 +64,26 @@ export default abstract class Constants {
         'Support',
         'Sniper'
     ];
+
+    public static readonly LEADERBOARD_CATEGORY_DESCRIPTIONS = {
+        [LeaderboardCategory.score]: 'Score',
+        [LeaderboardCategory.weapon]: 'Kills in a given weapon category',
+        [LeaderboardCategory.vehicle]: 'Kills in a given vehicle category',
+        [LeaderboardCategory.kit]: 'Kills with a given kit',
+    };
+
+    public static LEADERBOARD_SORT_BY_OPTION_NAMES = {
+        [LeaderboardCategory.score]: 'score-type',
+        [LeaderboardCategory.weapon]: 'weapon-category',
+        [LeaderboardCategory.vehicle]: 'vehicle-category',
+        [LeaderboardCategory.kit]: 'kit',
+    };
+
+    public static readonly LEADERBOARD_ID_LABELS = {
+        [LeaderboardScoreType.overall]: 'Overall',
+        [LeaderboardScoreType.risingstar]: 'Rising star',
+        [LeaderboardScoreType.commander]: 'Commander',
+        [LeaderboardScoreType.team]: 'Teamwork',
+        [LeaderboardScoreType.combat]: 'Combat'
+    };
 }
