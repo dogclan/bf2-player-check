@@ -80,6 +80,21 @@ Show a player's per-vehicle stats (time player, k/d ratio).
 
 ![](https://user-images.githubusercontent.com/17167062/178348559-cb6294e0-7b6a-4748-9545-c680c7969d7a.png)
 
+### /maps
+
+Show a player's per-map stats (time played, win rate).
+
+#### Options
+
+| Name    | Description                                  | Required | Note                                 |
+|---------|----------------------------------------------|----------|--------------------------------------|
+| project | BF2 revive project to pull stats from        | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name    | Name of the player (without clan tag/prefix) | yes      |                                      |
+
+#### Example
+
+![](https://user-images.githubusercontent.com/17167062/188514748-bc7de362-2ddf-4cb4-88fd-695ab2aebf0d.png)
+
 ### /leaderboard score
 
 Show a page of the player leaderboard sorted by score.

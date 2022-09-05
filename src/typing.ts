@@ -106,6 +106,24 @@ export type WeaponInfo = {
     kd: string
 }
 
+export type PlayerMapInfo = {
+    asof: string
+    grouped: {
+        maps: MapInfo[]
+    }
+    player: {
+        pid: string
+        nick: string
+    }
+}
+
+export type MapInfo = {
+    id: number
+    tm: string
+    wn: string
+    ls: string
+}
+
 export type PlayerLeaderboard = {
     size: string
     asof: string
@@ -146,6 +164,12 @@ export type VehicleStatsColumns = Columns & {
     category: Column
     timeWith: Column
     kd: Column
+}
+
+export type MapStatsColumns = Columns & {
+    name: Column
+    timeWith: Column
+    winRate: Column
 }
 
 export type LeaderboardColumns = Columns & {

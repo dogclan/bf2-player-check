@@ -4,10 +4,10 @@ import {
     EnrichedPlayerSearch,
     LeaderboardCategory,
     LeaderboardColumns,
-    LeaderboardScoreType,
+    LeaderboardScoreType, MapInfo, MapStatsColumns,
     Player,
     PlayerInfo,
-    PlayerLeaderboard,
+    PlayerLeaderboard, PlayerMapInfo,
     Project,
     SearchColumns,
     VehicleInfo,
@@ -42,13 +42,13 @@ export function formatTimePlayed(seconds: number): string {
     return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
 }
 
-export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo>(entries: T[], invalidIds: number[]): T[] {
+export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo | MapInfo>(entries: T[], invalidIds: number[], updateIndexes = true): T[] {
     const filtered = entries.filter((e) => !invalidIds.includes(e.id));
     // Rewrite ids (which are just the index)
     const valid: T[] = [];
     for (const [index, entry] of filtered.entries()) {
         // Copy object instead of changing original one
-        valid.push({ ...entry, id: index });
+        valid.push({ ...entry, id: updateIndexes ? index : entry.id });
     }
 
     return valid;
@@ -375,6 +375,75 @@ export function formatKitStats(player: Player, stats: PlayerInfo): MessageEmbed 
     });
 }
 
+export function formatMapStats(player: Player, stats: PlayerMapInfo): MessageEmbed {
+    const maps = filterInvalidEntries(stats.grouped.maps, Constants.INVALID_MAP_IDS, false);
+    const timeWithsFormatted: Record<number, string> = {};
+    const winRates: Record<number, string> = {};
+    for (const m of maps) {
+        const secondsPlayed = Number(m.tm);
+        timeWithsFormatted[m.id] = formatTimePlayed(secondsPlayed);
+        const winRate = Number(m.wn) / (Number(m.wn) +  Number(m.ls) || 1) * 100;
+        winRates[m.id] = `${winRate.toFixed(2)}%`;
+    }
+
+    const padding = 4;
+    const columns: MapStatsColumns = {
+        name: {
+            width: longestStringLen(Object.values(Constants.MAP_LABELS), 10),
+            heading: 'Map'
+        },
+        timeWith: {
+            width: longestStringLen(Object.values(timeWithsFormatted), 7),
+            heading: 'Time'
+        },
+        winRate: {
+            width: longestStringLen(Object.values(winRates), 5),
+            heading: 'Win rate'
+        }
+    };
+
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    for (const key in columns) {
+        const column = columns[key];
+
+        // Add a few spaces of padding between tables
+        column.width = key == 'winRate' ? column.width : column.width + padding;
+
+        formatted += column.heading.padEnd(column.width);
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    for (const mapInfo of maps) {
+        const timeWith = timeWithsFormatted[mapInfo.id];
+        const winRate = winRates[mapInfo.id];
+
+        formatted += Constants.MAP_LABELS[mapInfo.id].padEnd(columns.name.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        // No need for the usual padStart(width - padding) plus padEnd(padding), since win rate is the last column
+        formatted += winRate.padStart(columns.winRate.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        player: player,
+        title: `Map stats for ${player.name}`,
+        description: formatted,
+        asOf: stats.asof,
+    });
+}
+
 export function formatStatsSummary(player: Player, stats: PlayerInfo): MessageEmbed {
     const bestClassId = stats.grouped.classes.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
     const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
@@ -525,11 +594,14 @@ export function createStatsEmbed({
     description,
     asOf,
     lastBattle
-}: { player: Player, title: string, description: string, asOf: string, lastBattle: string }): MessageEmbed {
+}: { player: Player, title: string, description: string, asOf: string, lastBattle?: string }): MessageEmbed {
     const fields = [
-        { name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
         { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
+    if (lastBattle) {
+        fields.unshift({ name: 'Last battle', value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true });
+    }
+
     const author: EmbedAuthorData = {
         name: Constants.PROJECT_LABELS[player.project],
         iconURL: Constants.PROJECT_ICONS[player.project],

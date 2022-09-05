@@ -8,6 +8,7 @@ import { vehicles } from './commands/vehicles';
 import { kits } from './commands/kits';
 import logger from './logger';
 import { leaderboard } from './commands/leaderboard';
+import { maps } from './commands/maps';
 
 class PlayerCheckBot {
     private token: string;
@@ -23,7 +24,7 @@ class PlayerCheckBot {
         this.logger = logger.getChildLogger({ name: 'BotLogger' });
         this.client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-        this.commands = [search, summary, weapons, vehicles, kits, leaderboard];
+        this.commands = [search, summary, weapons, vehicles, kits, maps, leaderboard];
 
         this.client.once('ready', () => {
             this.client.user?.presence.set({ status: 'online' });
