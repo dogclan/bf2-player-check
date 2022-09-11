@@ -44,8 +44,8 @@ export const maps: Command = {
             };
         }
         catch (e: any) {
-            if (e.isAxiosError && e?.response?.data) {
-                await interaction.editReply(e.response.data?.errors);
+            if (e.isAxiosError && e?.response?.status == 404) {
+                await interaction.editReply(`Sorry, could not find a BF2 player called "${name}" on ${Constants.PROJECT_LABELS[project as Project]}.`);
                 return;
             }
             else {
