@@ -65,8 +65,7 @@ export function sortByKillsAndTimeAsc<T extends ClassInfo | WeaponInfo | Vehicle
 export function getAuthorUrl(player: Player): string {
     switch (player.project) {
         case Project.bf2hub:
-            // Use player stats page URL for BF2Hub
-            return `https://www.bf2hub.com/player/${player.name}`;
+            return `https://www.bf2hub.com/stats/${player.pid}`;
         case Project.playbf2:
             return `http://bf2.tgamer.ru/stats/?pid=${player.pid}`;
         default:
