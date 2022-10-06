@@ -71,11 +71,10 @@ export const search: Command = {
 
         const enrichedResults: EnrichedPlayerSearchResult[] = [];
         for (const player of data.players) {
-            // PlayBF2 returns names as "{tag} {name}", so split and return last element to get name only
-            const nameWithoutPrefix = player.nick.split(' ').pop() || player.nick;
             const server = servers.find((s) => s.players.some((p) => {
-                // Make sure pid AND name match
-                return p.pid == Number(player.pid) && p.name.toLowerCase() == nameWithoutPrefix;
+                // Make sure pid matches
+                // Comparing name leads to issues in rare cases where long player names are cut off
+                return p.pid == Number(player.pid);
             }));
 
             const enrichedResult: EnrichedPlayerSearchResult = player;
