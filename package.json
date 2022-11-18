@@ -48,6 +48,6 @@
     "discord.js": "13.8.1",
     "moment": "2.29.4",
     "node-cron": "3.0.2",
-    "tslog": "3.3.3"
+    "tslog": "3.3.4"
   }
 }
