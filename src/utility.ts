@@ -4,10 +4,13 @@ import {
     EnrichedPlayerSearch,
     LeaderboardCategory,
     LeaderboardColumns,
-    LeaderboardScoreType, MapInfo, MapStatsColumns,
+    LeaderboardScoreType,
+    MapInfo,
+    MapStatsColumns,
     Player,
     PlayerInfo,
-    PlayerLeaderboard, PlayerMapInfo,
+    PlayerLeaderboard,
+    PlayerMapInfo,
     Project,
     SearchColumns,
     VehicleInfo,
@@ -15,7 +18,7 @@ import {
     WeaponInfo,
     WeaponStatsColumns
 } from './typing';
-import { ColorResolvable, EmbedAuthorData, EmbedFieldData, MessageEmbed } from 'discord.js';
+import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedField } from 'discord.js';
 import Config from './config';
 import moment from 'moment';
 
@@ -73,9 +76,9 @@ export function getAuthorUrl(player: Player): string {
     }
 }
 
-export function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): MessageEmbed {
+export function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): EmbedBuilder {
     let formatted: string;
-    const fields: EmbedFieldData[] = [
+    const fields: EmbedField[] = [
         { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
     ];
     const players = data.players
@@ -163,7 +166,7 @@ export function formatSearchResultList(name: string, project: Project, data: Enr
     });
 }
 
-export function formatWeaponStats(player: Player, stats: PlayerInfo): MessageEmbed {
+export function formatWeaponStats(player: Player, stats: PlayerInfo): EmbedBuilder {
     // Skip last weapon category since it's stats are always 0
     const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
     const timeWithsFormatted = weapons.map((w) => {
@@ -238,7 +241,7 @@ export function formatWeaponStats(player: Player, stats: PlayerInfo): MessageEmb
     });
 }
 
-export function formatVehicleStats(Player: Player, stats: PlayerInfo): MessageEmbed {
+export function formatVehicleStats(Player: Player, stats: PlayerInfo): EmbedBuilder {
     // Ignore fifth vehicle since it's values are always 0
     const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
     const timeWithsFormatted = vehicles.map((v) => {
@@ -307,7 +310,7 @@ export function formatVehicleStats(Player: Player, stats: PlayerInfo): MessageEm
     });
 }
 
-export function formatKitStats(player: Player, stats: PlayerInfo): MessageEmbed {
+export function formatKitStats(player: Player, stats: PlayerInfo): EmbedBuilder {
     const timeWithsFormatted = stats.grouped.classes.map((c) => {
         const seconds = Number(c.tm);
         return formatTimePlayed(seconds);
@@ -374,7 +377,7 @@ export function formatKitStats(player: Player, stats: PlayerInfo): MessageEmbed 
     });
 }
 
-export function formatMapStats(player: Player, stats: PlayerMapInfo): MessageEmbed {
+export function formatMapStats(player: Player, stats: PlayerMapInfo): EmbedBuilder {
     const maps = filterInvalidEntries(stats.grouped.maps, Constants.INVALID_MAP_IDS, false);
     const timeWithsFormatted: Record<number, string> = {};
     const winRates: Record<number, string> = {};
@@ -443,13 +446,13 @@ export function formatMapStats(player: Player, stats: PlayerMapInfo): MessageEmb
     });
 }
 
-export function formatStatsSummary(player: Player, stats: PlayerInfo): MessageEmbed {
+export function formatStatsSummary(player: Player, stats: PlayerInfo): EmbedBuilder {
     const bestClassId = stats.grouped.classes.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
     const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
     const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
     const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
     const bestWeaponId = weapons.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
-    const fields: EmbedFieldData[] = [
+    const fields: EmbedField[] = [
         { name: 'Time', value: formatTimePlayed(Number(stats.player.time)), inline: true },
         { name: 'Score per minute', value: Number(stats.player.ospm).toFixed(2), inline: true },
         { name: 'Kills per minute', value: Number(stats.player.klpm).toFixed(2), inline: true },
@@ -479,8 +482,8 @@ export function formatStatsSummary(player: Player, stats: PlayerInfo): MessageEm
     return embed;
 }
 
-export function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, data: PlayerLeaderboard): MessageEmbed {
-    let sortedByField: EmbedFieldData;
+export function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, data: PlayerLeaderboard): EmbedBuilder {
+    let sortedByField: EmbedField;
     switch (category) {
         case LeaderboardCategory.weapon:
             sortedByField = { name: 'Weapon category', value: Constants.WEAPON_CATEGORY_LABELS[sortBy], inline: true };
@@ -495,7 +498,7 @@ export function formatLeaderboardPage(category: LeaderboardCategory, sortBy: num
             sortedByField = { name: 'Score-type', value: Constants.LEADERBOARD_ID_LABELS[sortBy as LeaderboardScoreType], inline: true };
     }
 
-    const fields: EmbedFieldData[] = [
+    const fields: EmbedField[] = [
         { name: 'Sorted by', value: Constants.LEADERBOARD_CATEGORY_DESCRIPTIONS[category], inline: true },
         sortedByField,
         { name: '\u200B', value: '\u200B', inline: true },
@@ -575,8 +578,8 @@ export function createEmbed({
     description,
     fields,
     author
-}: { title: string, description: string, fields: EmbedFieldData[], author: EmbedAuthorData }): MessageEmbed {
-    const embed = new MessageEmbed({
+}: { title: string, description: string, fields: EmbedField[], author: EmbedAuthorData }): EmbedBuilder {
+    const embed = new EmbedBuilder({
         title,
         description,
         fields,
@@ -593,7 +596,7 @@ export function createStatsEmbed({
     description,
     asOf,
     lastBattle
-}: { player: Player, title: string, description: string, asOf: string, lastBattle?: string }): MessageEmbed {
+}: { player: Player, title: string, description: string, asOf: string, lastBattle?: string }): EmbedBuilder {
     const fields = [
         { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];

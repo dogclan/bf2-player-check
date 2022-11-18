@@ -1,4 +1,4 @@
-import { Client, CommandInteraction, Intents, Interaction } from 'discord.js';
+import { ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction } from 'discord.js';
 import { Logger } from 'tslog';
 import { Command } from './commands/typing';
 import { search } from './commands/search';
@@ -22,7 +22,7 @@ class PlayerCheckBot {
         this.token = token;
 
         this.logger = logger.getChildLogger({ name: 'BotLogger' });
-        this.client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+        this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
         this.commands = [search, summary, weapons, vehicles, kits, maps, leaderboard];
 
@@ -36,7 +36,7 @@ class PlayerCheckBot {
         });
 
         this.client.on('interactionCreate', async (interaction: Interaction) => {
-            if (interaction.isCommand()) {
+            if (interaction.isChatInputCommand()) {
                 try {
                     await this.handleSlashCommand(interaction);
                 }
@@ -50,7 +50,7 @@ class PlayerCheckBot {
         this.client.login(this.token);
     }
 
-    private async handleSlashCommand(interaction: CommandInteraction): Promise<void> {
+    private async handleSlashCommand(interaction: ChatInputCommandInteraction): Promise<void> {
         const slashCommand = this.commands.find(c => c.name === interaction.commandName);
 
         if (!slashCommand) {

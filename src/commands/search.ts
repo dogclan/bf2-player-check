@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { CommandInteraction } from 'discord.js';
-import { ApplicationCommandOptionTypes } from 'discord.js/typings/enums';
+import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
 import Constants from '../constants';
 import { BflistServer, EnrichedPlayerSearchResult, PlayerSearch, Project } from '../typing';
 import { formatSearchResultList } from '../utility';
@@ -14,7 +13,7 @@ export const search: Command = {
         {
             name: 'project',
             description: 'GameSpy-replacement project to search',
-            type: ApplicationCommandOptionTypes.INTEGER,
+            type: ApplicationCommandOptionType.Integer,
             choices: [
                 { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
                 { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
@@ -24,11 +23,11 @@ export const search: Command = {
         {
             name: 'name',
             description: '(Partial) Player name to search for',
-            type: ApplicationCommandOptionTypes.STRING,
+            type: ApplicationCommandOptionType.String,
             required: true
         }
     ],
-    execute: async (interaction: CommandInteraction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply();
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
