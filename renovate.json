@@ -3,6 +3,9 @@
   "extends": [
     "config:base",
     ":semanticCommits",
-    ":pinVersions"
+    ":pinVersions",
+    ":automergeLinters",
+    ":automergeTesters",
+    ":automergeTypes"
   ]
 }
