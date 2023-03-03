@@ -19,7 +19,7 @@ export enum LeaderboardScoreType {
     combat
 }
 
-export type PlayerSearch = {
+export type PlayerSearchResponse = {
     asof: string
     players: PlayerSearchResult[]
 }

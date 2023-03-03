@@ -27,6 +27,13 @@ export function longestStringLen(strings: string[], fallback: number): number {
     return longest?.length || fallback;
 }
 
+export function fitStringToLength(str: string, maxLength: number, trailer = '...'): string {
+    if (str.length < maxLength) {
+        return str;
+    }
+    return str.substring(0, maxLength - trailer.length) + trailer;
+}
+
 /**
  * Get full hours from the given timespan in seconds.
  */
@@ -88,11 +95,8 @@ export function formatSearchResultList(name: string, project: Project, data: Enr
         .filter((player) => player.nick.toLowerCase().includes(name.toLowerCase()));
     if (players.length > 0) {
         const serverNames = players.map((p) => {
-            let serverName = p.currentServer?.trim() || '';
-            if (serverName.length > 18) {
-                serverName = `${serverName.substring(0, 15)}...`;
-            }
-            return serverName;
+            const serverName = p.currentServer?.trim() || '';
+            return fitStringToLength(serverName, 18);
         });
 
         // Leave a few spaces between columns

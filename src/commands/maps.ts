@@ -1,10 +1,11 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import Constants from '../constants';
 import { Player, Project } from '../typing';
 import { Command } from './typing';
 import { formatMapStats } from '../utility';
 import cmdLogger from './logger';
+import { fetchPlayerNameOptionChoices } from './utility';
 
 export const maps: Command = {
     name: 'maps',
@@ -24,7 +25,8 @@ export const maps: Command = {
             name: 'name',
             description: 'Player name',
             type: ApplicationCommandOptionType.String,
-            required: true
+            required: true,
+            autocomplete: true
         }
     ],
     execute: async (interaction: ChatInputCommandInteraction) => {
@@ -70,5 +72,11 @@ export const maps: Command = {
             cmdLogger.error('Failed to fetch player info for', player.name, Project[player.project], e?.response?.status, e?.code);
             await interaction.editReply(`Sorry, failed to fetch stats for ${player.name} from ${Constants.PROJECT_LABELS[player.project]}.`);
         }
+    },
+    autocomplete: async (interaction: AutocompleteInteraction) => {
+        const project = interaction.options.getInteger('project');
+        const focusedValue = interaction.options.getFocused();
+        const choices = await fetchPlayerNameOptionChoices(project, focusedValue);
+        await interaction.respond(choices);
     }
 };

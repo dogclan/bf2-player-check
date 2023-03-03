@@ -31,6 +31,8 @@ export default abstract class Constants {
     public static readonly INVALID_MAP_IDS = [104];
 
     public static readonly LEADERBOARD_PER_PAGE = 20;
+
+    public static readonly DISCORD_CHOICES_MAX_LENGTH = 25;
     
     public static readonly WEAPON_CATEGORY_LABELS = [
         'Assault-Rifle',

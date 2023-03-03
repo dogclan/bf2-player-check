@@ -1,4 +1,10 @@
-import { ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction } from 'discord.js';
+import {
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    Client,
+    GatewayIntentBits,
+    Interaction
+} from 'discord.js';
 import { Logger } from 'tslog';
 import { Command } from './commands/typing';
 import { search } from './commands/search';
@@ -38,10 +44,18 @@ class PlayerCheckBot {
         this.client.on('interactionCreate', async (interaction: Interaction) => {
             if (interaction.isChatInputCommand()) {
                 try {
-                    await this.handleSlashCommand(interaction);
+                    await this.handleChatInputCommand(interaction);
                 }
                 catch (e: any) {
-                    this.logger.error('Failed to handle slash command', e.message);
+                    this.logger.error('Failed to handle chat input command interaction', e.message);
+                }
+            }
+            else if (interaction.isAutocomplete()) {
+                try {
+                    await this.handleAutocomplete(interaction);
+                }
+                catch (e: any) {
+                    this.logger.error('Failed to handle autocomplete interaction', e.message);
                 }
             }
         });
@@ -50,15 +64,30 @@ class PlayerCheckBot {
         this.client.login(this.token);
     }
 
-    private async handleSlashCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-        const slashCommand = this.commands.find(c => c.name === interaction.commandName);
+    private async handleChatInputCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+        const command = this.commands.find(c => c.name === interaction.commandName);
 
-        if (!slashCommand) {
-            await interaction.followUp({ content: 'An error has occurred' });
+        if (!command) {
+            this.logger.error('Received chat input command interaction with unknown command name', interaction.commandName);
             return;
         }
 
-        await slashCommand.execute(interaction);
+        await command.execute(interaction);
+    }
+
+    private async handleAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+        const command = this.commands.find(c => c.name === interaction.commandName);
+
+        if (!command) {
+            this.logger.error('Received autocomplete interaction with unknown command name', interaction.commandName);
+            return;
+        }
+        else if (!command.autocomplete) {
+            this.logger.error('Received autocomplete interaction for command without autocomplete handler', interaction.commandName);
+            return;
+        }
+
+        await command.autocomplete(interaction);
     }
 }
 

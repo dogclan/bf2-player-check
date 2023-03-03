@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
 import Constants from '../constants';
-import { BflistServer, EnrichedPlayerSearchResult, PlayerSearch, Project } from '../typing';
+import { BflistServer, EnrichedPlayerSearchResult, PlayerSearchResponse, Project } from '../typing';
 import { formatSearchResultList } from '../utility';
 import { Command } from './typing';
 import cmdLogger from './logger';
@@ -31,7 +31,7 @@ export const search: Command = {
         await interaction.deferReply();
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
-        let data: PlayerSearch;
+        let data: PlayerSearchResponse;
         try {
             const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/searchforplayers', {
                 params: {
