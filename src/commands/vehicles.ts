@@ -1,11 +1,21 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    EmbedBuilder
+} from 'discord.js';
 import Constants from '../constants';
-import { Player, Project } from '../typing';
-import { Command } from './typing';
-import { formatVehicleStats } from '../utility';
+import { Project } from '../typing';
+import { Command, Player, PlayerInfoResponse, VehicleStatsColumns } from './typing';
 import cmdLogger from './logger';
-import { fetchPlayerNameOptionChoices } from './utility';
+import {
+    createStatsEmbed,
+    fetchPlayerNameOptionChoices,
+    filterInvalidEntries,
+    formatTimePlayed,
+    longestStringLen
+} from './utility';
 
 export const vehicles: Command = {
     name: 'vehicles',
@@ -79,3 +89,72 @@ export const vehicles: Command = {
         await interaction.respond(choices);
     }
 };
+
+function formatVehicleStats(Player: Player, stats: PlayerInfoResponse): EmbedBuilder {
+    // Ignore fifth vehicle since it's values are always 0
+    const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
+    const timeWithsFormatted = vehicles.map((v) => {
+        const seconds = Number(v.tm);
+        return formatTimePlayed(seconds);
+    });
+    const kds = vehicles.map((v) => {
+        const kd = Number(v.kl) / (Number(v.dt) || 1);
+        return kd.toFixed(2);
+    });
+
+    const columns: VehicleStatsColumns = {
+        category: {
+            width: longestStringLen(Constants.VEHICLE_CATEGORY_LABELS, 10),
+            heading: 'Category'
+        },
+        timeWith: {
+            width: longestStringLen(timeWithsFormatted, 7),
+            heading: 'Time'
+        },
+        kd: {
+            width: longestStringLen(kds, 5),
+            heading: 'K/D'
+        }
+    };
+
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    for (const key in columns) {
+        const column = columns[key];
+
+        // Add a few spaces of padding between tables
+        column.width = key == 'kd' ? column.width : column.width + 4;
+
+        formatted += column.heading.padEnd(column.width, ' ');
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    for (const vehicleInfo of vehicles) {
+        const timeWith = timeWithsFormatted[vehicleInfo.id];
+        const kd = kds[vehicleInfo.id];
+
+        formatted += Constants.VEHICLE_CATEGORY_LABELS[vehicleInfo.id].padEnd(columns.category.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        formatted += kd.padEnd(columns.kd.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        player: Player,
+        title: `Vehicle stats for ${Player.name}`,
+        description: formatted,
+        asOf: stats.asof,
+        lastBattle: stats.player.lbtl
+    });
+}

@@ -1,14 +1,17 @@
-import { Command } from './typing';
+import { Command, LeaderboardColumns, PlayerLeaderboardResponse } from './typing';
 import Constants from '../constants';
 import { LeaderboardCategory, LeaderboardScoreType, Project } from '../typing';
 import {
     ApplicationCommandNumericOptionData,
     ApplicationCommandOptionType,
-    ChatInputCommandInteraction
+    ChatInputCommandInteraction,
+    EmbedBuilder,
+    EmbedField
 } from 'discord.js';
 import axios from 'axios';
-import { formatLeaderboardPage } from '../utility';
 import cmdLogger from './logger';
+import moment from 'moment/moment';
+import { createEmbed, longestStringLen } from './utility';
 
 const commonOptions: Record<'project' | 'page', ApplicationCommandNumericOptionData> = {
     project: {
@@ -151,4 +154,95 @@ function leaderboardCategoryFromName(name: string): LeaderboardCategory {
         default:
             return LeaderboardCategory.score;
     }
+}
+
+function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, data: PlayerLeaderboardResponse): EmbedBuilder {
+    let sortedByField: EmbedField;
+    switch (category) {
+        case LeaderboardCategory.weapon:
+            sortedByField = { name: 'Weapon category', value: Constants.WEAPON_CATEGORY_LABELS[sortBy], inline: true };
+            break;
+        case LeaderboardCategory.vehicle:
+            sortedByField = { name: 'Vehicle category', value: Constants.VEHICLE_CATEGORY_LABELS[sortBy], inline: true };
+            break;
+        case LeaderboardCategory.kit:
+            sortedByField = { name: 'Kit', value: Constants.KIT_LABELS[sortBy], inline: true };
+            break;
+        default:
+            sortedByField = { name: 'Score-type', value: Constants.LEADERBOARD_ID_LABELS[sortBy as LeaderboardScoreType], inline: true };
+    }
+
+    const fields: EmbedField[] = [
+        { name: 'Sorted by', value: Constants.LEADERBOARD_CATEGORY_DESCRIPTIONS[category], inline: true },
+        sortedByField,
+        { name: '\u200B', value: '\u200B', inline: true },
+        { name: 'Page', value: `${page}`, inline: true },
+        { name: 'Total pages', value: `${Math.ceil(Number(data.size) / Constants.LEADERBOARD_PER_PAGE)}`, inline: true },
+        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
+    ];
+
+    // Remove clan tags from names
+    const players = data.players.map((player) => ({ ...player, 'nick': player.nick.trim().split(' ').pop() || player.nick }));
+
+    let formatted: string;
+    if (players.length == 0) {
+        formatted = 'There seem to be no more players on this leaderboard.';
+    }
+    else {
+        // Leave a few spaces between columns
+        const padding = 3;
+        const columns: LeaderboardColumns = {
+            position: {
+                width: longestStringLen(players.map((p) => p.n), 1),
+                heading: '#'
+            },
+            name: {
+                width: longestStringLen(players.map((p) => p.nick), 10),
+                heading: 'Name'
+            },
+            country: {
+                width: 7,
+                heading: 'Country'
+            }
+        };
+
+        // Start markdown embed
+        formatted = '```\n';
+
+        // Add table headers
+        let totalWidth = 0;
+        for (const key in columns) {
+            const column = columns[key];
+
+            // Add a few spaces of padding between tables
+            column.width = key == 'currentServer' ? column.width : column.width + padding;
+
+            formatted += column.heading.padEnd(column.width, ' ');
+            totalWidth += column.width;
+        }
+
+        formatted += '\n';
+
+        // Add separator
+        formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+        for (const player of players) {
+            // Align position to the right for better readability
+            formatted += `${player.n.padStart(columns.position.width - padding, ' ')}${''.padEnd(padding, ' ')}`;
+            formatted += `${player.nick.padEnd(columns.name.width, ' ')}`;
+            formatted += `${player.countrycode.padEnd(columns.country.width, ' ') }\n`;
+        }
+
+        // End markdown embed
+        formatted += '```';
+
+        fields.push();
+    }
+
+    return createEmbed({
+        title: 'Player leaderboard',
+        description: formatted,
+        fields,
+        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: Constants.PROJECT_WEBSITES[project] }
+    });
 }

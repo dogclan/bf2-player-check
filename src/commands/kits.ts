@@ -1,11 +1,15 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    EmbedBuilder
+} from 'discord.js';
 import Constants from '../constants';
-import { Player, Project } from '../typing';
-import { Command } from './typing';
-import { formatKitStats } from '../utility';
+import { Project } from '../typing';
+import { Command, Player, PlayerInfoResponse, VehicleStatsColumns } from './typing';
 import cmdLogger from './logger';
-import { fetchPlayerNameOptionChoices } from './utility';
+import { createStatsEmbed, fetchPlayerNameOptionChoices, formatTimePlayed, longestStringLen } from './utility';
 
 export const kits: Command = {
     name: 'kits',
@@ -79,3 +83,70 @@ export const kits: Command = {
         await interaction.respond(choices);
     }
 };
+
+function formatKitStats(player: Player, stats: PlayerInfoResponse): EmbedBuilder {
+    const timeWithsFormatted = stats.grouped.classes.map((c) => {
+        const seconds = Number(c.tm);
+        return formatTimePlayed(seconds);
+    });
+    const kds = stats.grouped.classes.map((c) => {
+        const kd = Number(c.kl) / (Number(c.dt) || 1);
+        return kd.toFixed(2);
+    });
+
+    const columns: VehicleStatsColumns = {
+        category: {
+            width: longestStringLen(Constants.KIT_LABELS, 10),
+            heading: 'Kit'
+        },
+        timeWith: {
+            width: longestStringLen(timeWithsFormatted, 7),
+            heading: 'Time'
+        },
+        kd: {
+            width: longestStringLen(kds, 5),
+            heading: 'K/D'
+        }
+    };
+
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    for (const key in columns) {
+        const column = columns[key];
+
+        // Add a few spaces of padding between tables
+        column.width = key == 'kd' ? column.width : column.width + 4;
+
+        formatted += column.heading.padEnd(column.width, ' ');
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    for (const classInfo of stats.grouped.classes) {
+        const timeWith = timeWithsFormatted[classInfo.id];
+        const kd = kds[classInfo.id];
+
+        formatted += Constants.KIT_LABELS[classInfo.id].padEnd(columns.category.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        formatted += kd.padEnd(columns.kd.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        player: player,
+        title: `Kit stats for ${player.name}`,
+        description: formatted,
+        asOf: stats.asof,
+        lastBattle: stats.player.lbtl
+    });
+}

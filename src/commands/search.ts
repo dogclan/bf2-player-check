@@ -1,10 +1,18 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import Constants from '../constants';
-import { BflistServer, EnrichedPlayerSearchResult, PlayerSearchResponse, Project } from '../typing';
-import { formatSearchResultList } from '../utility';
-import { Command } from './typing';
+import { Project } from '../typing';
+import {
+    BflistServer,
+    Command,
+    EnrichedPlayerSearch,
+    EnrichedPlayerSearchResult,
+    PlayerSearchResponse,
+    SearchColumns
+} from './typing';
 import cmdLogger from './logger';
+import moment from 'moment/moment';
+import { createEmbed, fitStringToLength, longestStringLen } from './utility';
 
 export const search: Command = {
     name: 'search',
@@ -88,3 +96,90 @@ export const search: Command = {
         await interaction.editReply({ embeds: [embed] });
     }
 };
+
+function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): EmbedBuilder {
+    let formatted: string;
+    const fields: EmbedField[] = [
+        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+    ];
+    const players = data.players
+        // Remove clan tags from names
+        .map((player) => ({ ...player, 'nick': player.nick.trim().split(' ').pop() || player.nick }))
+        // Filter out players who's clan tag matches but actual name does match the given name
+        .filter((player) => player.nick.toLowerCase().includes(name.toLowerCase()));
+    if (players.length > 0) {
+        const serverNames = players.map((p) => {
+            const serverName = p.currentServer?.trim() || '';
+            return fitStringToLength(serverName, 18);
+        });
+
+        // Leave a few spaces between columns
+        const padding = 3;
+        const columns: SearchColumns = {
+            name: {
+                width: longestStringLen(players.map((p) => p.nick), 10),
+                heading: 'Name'
+            },
+            pid: {
+                width: longestStringLen(players.map((p) => p.pid), 6),
+                heading: 'PID'
+            },
+            currentServer: {
+                width: longestStringLen(serverNames, 13),
+                heading: 'Playing on'
+            }
+        };
+
+        // Start markdown embed
+        formatted = '```\n';
+
+        // Add table headers
+        let totalWidth = 0;
+        for (const key in columns) {
+            const column = columns[key];
+
+            // Add a few spaces of padding between tables
+            column.width = key == 'currentServer' ? column.width : column.width + padding;
+
+            formatted += column.heading.padEnd(column.width, ' ');
+            totalWidth += column.width;
+        }
+
+        formatted += '\n';
+
+        // Add separator
+        formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+        for (const [index, player] of players.entries()) {
+            const serverName = serverNames[index];
+
+            formatted += `${player.nick.padEnd(columns.name.width, ' ') }`;
+            // Align pid to the right for better readability
+            formatted += `${player.pid.padStart(columns.pid.width - padding, ' ') }${''.padEnd(padding, ' ')}`;
+            formatted += `${serverName.padEnd(columns.currentServer.width, ' ') }\n`;
+        }
+
+        // End markdown embed
+        formatted += '```';
+
+        fields.push({
+            name: 'Results',
+            value: players.length.toString(),
+            inline: true
+        }, {
+            name: 'Results max.',
+            value: Constants.PROJECT_RESULT_LIMITS[project].toString(),
+            inline: true
+        });
+    }
+    else {
+        formatted = `Sorry, could not find any BF2 players who's name is/contains "${name}".`;
+    }
+
+    return createEmbed({
+        title: `Search results for "${name}"`,
+        description: formatted,
+        fields,
+        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: Constants.PROJECT_WEBSITES[project] }
+    });
+}

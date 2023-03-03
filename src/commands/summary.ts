@@ -1,11 +1,23 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    EmbedBuilder,
+    EmbedField
+} from 'discord.js';
 import Constants from '../constants';
-import { Player, Project } from '../typing';
-import { Command } from './typing';
-import { formatStatsSummary } from '../utility';
+import { Project } from '../typing';
+import { Command, Player, PlayerInfoResponse } from './typing';
 import cmdLogger from './logger';
-import { fetchPlayerNameOptionChoices } from './utility';
+import {
+    createEmbed,
+    fetchPlayerNameOptionChoices, filterInvalidEntries,
+    formatTimePlayed,
+    getAuthorUrl,
+    sortByKillsAndTimeAsc
+} from './utility';
+import moment from 'moment/moment';
 
 export const summary: Command = {
     name: 'summary',
@@ -78,3 +90,39 @@ export const summary: Command = {
         await interaction.respond(choices);
     }
 };
+
+function formatStatsSummary(player: Player, stats: PlayerInfoResponse): EmbedBuilder {
+    const bestClassId = stats.grouped.classes.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
+    const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
+    const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
+    const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
+    const bestWeaponId = weapons.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
+    const fields: EmbedField[] = [
+        { name: 'Time', value: formatTimePlayed(Number(stats.player.time)), inline: true },
+        { name: 'Score per minute', value: Number(stats.player.ospm).toFixed(2), inline: true },
+        { name: 'Kills per minute', value: Number(stats.player.klpm).toFixed(2), inline: true },
+        { name: 'K/D', value: (Number(stats.player.kill) / (Number(stats.player.deth) || 1)).toFixed(2), inline: true },
+        { name: 'Accuracy', value: `${Number(stats.player.osaa).toFixed(2)}%`, inline: true },
+        { name: 'Enlisted', value: moment(Number(stats.player.jond) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Best kit', value: Constants.KIT_LABELS[bestClassId], inline: true },
+        { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
+        { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
+        { name: 'Last battle', value: moment(Number(stats.player.lbtl) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'As of', value: moment(Number(stats.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+    ];
+
+    const embed = createEmbed({
+        title: `Stats summary for ${player.name}`,
+        description: '',
+        fields,
+        author: {
+            name: Constants.PROJECT_LABELS[player.project],
+            iconURL: Constants.PROJECT_ICONS[player.project],
+            url: getAuthorUrl(player)
+        }
+    });
+
+    embed.setThumbnail(`https://cdn.gametools.network/bf2/${stats.player.rank}.png`);
+
+    return embed;
+}

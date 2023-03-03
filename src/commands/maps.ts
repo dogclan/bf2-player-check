@@ -1,11 +1,21 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    EmbedBuilder
+} from 'discord.js';
 import Constants from '../constants';
-import { Player, Project } from '../typing';
-import { Command } from './typing';
-import { formatMapStats } from '../utility';
+import { Project } from '../typing';
+import { Command, MapStatsColumns, Player, PlayerMapInfoResponse } from './typing';
 import cmdLogger from './logger';
-import { fetchPlayerNameOptionChoices } from './utility';
+import {
+    createStatsEmbed,
+    fetchPlayerNameOptionChoices,
+    filterInvalidEntries,
+    formatTimePlayed,
+    longestStringLen
+} from './utility';
 
 export const maps: Command = {
     name: 'maps',
@@ -80,3 +90,72 @@ export const maps: Command = {
         await interaction.respond(choices);
     }
 };
+
+function formatMapStats(player: Player, stats: PlayerMapInfoResponse): EmbedBuilder {
+    const maps = filterInvalidEntries(stats.grouped.maps, Constants.INVALID_MAP_IDS, false);
+    const timeWithsFormatted: Record<number, string> = {};
+    const winRates: Record<number, string> = {};
+    for (const m of maps) {
+        const secondsPlayed = Number(m.tm);
+        timeWithsFormatted[m.id] = formatTimePlayed(secondsPlayed);
+        const winRate = Number(m.wn) / (Number(m.wn) +  Number(m.ls) || 1) * 100;
+        winRates[m.id] = `${winRate.toFixed(2)}%`;
+    }
+
+    const padding = 4;
+    const columns: MapStatsColumns = {
+        name: {
+            width: longestStringLen(Object.values(Constants.MAP_LABELS), 10),
+            heading: 'Map'
+        },
+        timeWith: {
+            width: longestStringLen(Object.values(timeWithsFormatted), 7),
+            heading: 'Time'
+        },
+        winRate: {
+            width: longestStringLen(Object.values(winRates), 5),
+            heading: 'Win rate'
+        }
+    };
+
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    for (const key in columns) {
+        const column = columns[key];
+
+        // Add a few spaces of padding between tables
+        column.width = key == 'winRate' ? column.width : column.width + padding;
+
+        formatted += column.heading.padEnd(column.width);
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    for (const mapInfo of maps) {
+        const timeWith = timeWithsFormatted[mapInfo.id];
+        const winRate = winRates[mapInfo.id];
+
+        formatted += Constants.MAP_LABELS[mapInfo.id].padEnd(columns.name.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        // No need for the usual padStart(width - padding) plus padEnd(padding), since win rate is the last column
+        formatted += winRate.padStart(columns.winRate.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        player: player,
+        title: `Map stats for ${player.name}`,
+        description: formatted,
+        asOf: stats.asof,
+    });
+}
