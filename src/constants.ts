@@ -3,7 +3,7 @@ import { LeaderboardCategory, LeaderboardScoreType, Project } from './typing';
 export default abstract class Constants {
     public static readonly PROJECT_LABELS = {
         [Project.bf2hub]: 'BF2Hub',
-        [Project.playbf2]: 'PlayBf2',
+        [Project.playbf2]: 'PlayBF2',
         [Project.phoenix]: 'Phoenix Network'
     };
     public static readonly PROJECT_ICONS = {
