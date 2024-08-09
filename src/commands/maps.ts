@@ -66,15 +66,13 @@ export const maps: Command = {
             }
         }
 
+        const url = new URL(
+            `/v2/players/${Project[player.project]}/by-id/${player.pid}/maps`,
+            'https://aspxstats.cetteup.com/'
+        );
+
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
-                params: {
-                    pid: player.pid,
-                    info: 'mtm-,mwn-,mls-',
-                    groupValues: 1,
-                    project: Project[player.project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             const embed = formatMapStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
@@ -91,14 +89,13 @@ export const maps: Command = {
     }
 };
 
-function formatMapStats(player: Player, stats: PlayerMapInfoResponse): EmbedBuilder {
-    const maps = filterInvalidEntries(stats.grouped.maps, Constants.INVALID_MAP_IDS, false);
+function formatMapStats(player: Player, { asof, data }: PlayerMapInfoResponse): EmbedBuilder {
+    const maps = filterInvalidEntries(data.maps, Constants.INVALID_MAP_IDS, false);
     const timeWithsFormatted: Record<number, string> = {};
     const winRates: Record<number, string> = {};
     for (const m of maps) {
-        const secondsPlayed = Number(m.tm);
-        timeWithsFormatted[m.id] = formatTimePlayed(secondsPlayed);
-        const winRate = Number(m.wn) / (Number(m.wn) +  Number(m.ls) || 1) * 100;
+        timeWithsFormatted[m.id] = formatTimePlayed(m.time);
+        const winRate = m.wins / (m.wins + m.losses || 1) * 100;
         winRates[m.id] = `${winRate.toFixed(2)}%`;
     }
 
@@ -156,6 +153,6 @@ function formatMapStats(player: Player, stats: PlayerMapInfoResponse): EmbedBuil
         player: player,
         title: `Map stats for ${player.name}`,
         description: formatted,
-        asOf: stats.asof,
+        asOf: asof,
     });
 }

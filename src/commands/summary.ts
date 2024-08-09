@@ -67,14 +67,13 @@ export const summary: Command = {
             }
         }
 
+        const url = new URL(
+            `/v2/players/${Project[player.project]}/by-id/${player.pid}/stats`,
+            'https://aspxstats.cetteup.com/'
+        );
+
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
-                params: {
-                    pid: player.pid,
-                    groupValues: 1,
-                    project: Project[player.project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             const embed = formatStatsSummary(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
@@ -91,24 +90,24 @@ export const summary: Command = {
     }
 };
 
-function formatStatsSummary(player: Player, stats: PlayerInfoResponse): EmbedBuilder {
-    const bestClassId = stats.grouped.classes.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
-    const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
+function formatStatsSummary(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+    const bestKitId = data.kits.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
+    const vehicles = filterInvalidEntries(data.vehicles, Constants.INVALID_VEHICLE_IDS);
     const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
-    const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
+    const weapons = filterInvalidEntries(data.weapons, Constants.INVALID_WEAPON_IDS);
     const bestWeaponId = weapons.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
     const fields: EmbedField[] = [
-        { name: 'Time', value: formatTimePlayed(Number(stats.player.time)), inline: true },
-        { name: 'Score per minute', value: Number(stats.player.ospm).toFixed(2), inline: true },
-        { name: 'Kills per minute', value: Number(stats.player.klpm).toFixed(2), inline: true },
-        { name: 'K/D', value: (Number(stats.player.kill) / (Number(stats.player.deth) || 1)).toFixed(2), inline: true },
-        { name: 'Accuracy', value: `${Number(stats.player.osaa).toFixed(2)}%`, inline: true },
-        { name: 'Enlisted', value: moment(Number(stats.player.jond) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
-        { name: 'Best kit', value: Constants.KIT_LABELS[bestClassId], inline: true },
+        { name: 'Time', value: formatTimePlayed(data.time.total), inline: true },
+        { name: 'Score per minute', value: data.score.per_minute.toFixed(2), inline: true },
+        { name: 'Kills per minute', value: data.kills.per_minute.toFixed(2), inline: true },
+        { name: 'K/D', value: (data.kills.total / (data.deaths.total || 1)).toFixed(2), inline: true },
+        { name: 'Accuracy', value: `${data.accuracy.toFixed(2)}%`, inline: true },
+        { name: 'Enlisted', value: moment(data.timestamp.joined * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Best kit', value: Constants.KIT_LABELS[bestKitId], inline: true },
         { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
         { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
-        { name: 'Last battle', value: moment(Number(stats.player.lbtl) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
-        { name: 'As of', value: moment(Number(stats.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Last battle', value: moment(data.timestamp.last_battle * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'As of', value: moment(asof * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
     ];
 
     const embed = createEmbed({
@@ -122,7 +121,7 @@ function formatStatsSummary(player: Player, stats: PlayerInfoResponse): EmbedBui
         }
     });
 
-    embed.setThumbnail(`https://cdn.gametools.network/bf2/${stats.player.rank}.png`);
+    embed.setThumbnail(`https://cdn.gametools.network/bf2/${data.rank}.png`);
 
     return embed;
 }

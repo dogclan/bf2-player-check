@@ -4,7 +4,7 @@ import Constants from '../constants';
 import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedField } from 'discord.js';
 import Config from '../config';
 import moment from 'moment';
-import { ClassInfo, MapInfo, Player, PlayerSearchResponse, VehicleInfo, WeaponInfo } from './typing';
+import { KitInfo, MapInfo, Player, PlayerSearchResponse, VehicleInfo, WeaponInfo } from './typing';
 
 export async function fetchPlayerNameOptionChoices(project: number | null, focusedValue: string): Promise<{ name: string, value: string }[]> {
     // Skip searches for if we have nothing to search for
@@ -12,15 +12,16 @@ export async function fetchPlayerNameOptionChoices(project: number | null, focus
         return [];
     }
 
-    const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/searchforplayers', {
-        params: {
-            nick: focusedValue,
-            where: 'a',
-            project: Project[project]
-        }
-    });
-    const results: PlayerSearchResponse = resp.data;
-    return results.players
+    const url = new URL(
+        `v2/players/${Project[project]}/search-nick/${encodeURIComponent(focusedValue)}`,
+        'https://aspxstats.cetteup.com/'
+    );
+
+    url.searchParams.set('where', 'a');
+
+    const resp = await axios.get(url.toString());
+    const data: PlayerSearchResponse = resp.data;
+    return data.results
         // As always, PlayBF2 returns names with tags, so we need to remove any existing tags
         .map((result) => result.nick.split(' ').pop() ?? result.nick)
         // We may have received players whose tag's match but name does not, so filter again locally (ignoring case)
@@ -76,12 +77,12 @@ export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo | MapInf
     return valid;
 }
 
-export function sortByKillsAndTimeAsc<T extends ClassInfo | WeaponInfo | VehicleInfo>(a: T, b: T): number {
-    const n = Number(a.kl) - Number(b.kl);
+export function sortByKillsAndTimeAsc<T extends KitInfo | WeaponInfo | VehicleInfo>(a: T, b: T): number {
+    const n = a.kills - b.kills;
     if (n != 0) {
         return n;
     }
-    return Number(a.tm) - Number(b.tm);
+    return a.time - b.time;
 }
 
 export function getAuthorUrl(player: Player): string {
@@ -118,14 +119,14 @@ export function createStatsEmbed({
     description,
     asOf,
     lastBattle
-}: { player: Player, title: string, description: string, asOf: string, lastBattle?: string }): EmbedBuilder {
+}: { player: Player, title: string, description: string, asOf: number, lastBattle?: number }): EmbedBuilder {
     const fields = [
-        { name: 'As of', value: moment(Number(asOf) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
+        { name: 'As of', value: moment(asOf * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
     if (lastBattle) {
         fields.unshift({
             name: 'Last battle',
-            value: moment(Number(lastBattle) * 1000).format('YYYY-MM-DD HH:mm:ss'),
+            value: moment(lastBattle * 1000).format('YYYY-MM-DD HH:mm:ss'),
             inline: true
         });
     }

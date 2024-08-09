@@ -60,14 +60,13 @@ export const kits: Command = {
             }
         }
 
+        const url = new URL(
+            `/v2/players/${Project[player.project]}/by-id/${player.pid}/stats`,
+            'https://aspxstats.cetteup.com/'
+        );
+
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
-                params: {
-                    pid: player.pid,
-                    groupValues: 1,
-                    project: Project[player.project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             const embed = formatKitStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
@@ -84,13 +83,12 @@ export const kits: Command = {
     }
 };
 
-function formatKitStats(player: Player, stats: PlayerInfoResponse): EmbedBuilder {
-    const timeWithsFormatted = stats.grouped.classes.map((c) => {
-        const seconds = Number(c.tm);
-        return formatTimePlayed(seconds);
+function formatKitStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+    const timeWithsFormatted = data.kits.map((k) => {
+        return formatTimePlayed(k.time);
     });
-    const kds = stats.grouped.classes.map((c) => {
-        const kd = Number(c.kl) / (Number(c.dt) || 1);
+    const kds = data.kits.map((k) => {
+        const kd = k.kills / (k.deaths || 1);
         return kd.toFixed(2);
     });
 
@@ -129,11 +127,11 @@ function formatKitStats(player: Player, stats: PlayerInfoResponse): EmbedBuilder
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    for (const classInfo of stats.grouped.classes) {
-        const timeWith = timeWithsFormatted[classInfo.id];
-        const kd = kds[classInfo.id];
+    for (const kitInfo of data.kits) {
+        const timeWith = timeWithsFormatted[kitInfo.id];
+        const kd = kds[kitInfo.id];
 
-        formatted += Constants.KIT_LABELS[classInfo.id].padEnd(columns.category.width);
+        formatted += Constants.KIT_LABELS[kitInfo.id].padEnd(columns.category.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
         formatted += kd.padEnd(columns.kd.width);
         formatted += '\n';
@@ -146,7 +144,7 @@ function formatKitStats(player: Player, stats: PlayerInfoResponse): EmbedBuilder
         player: player,
         title: `Kit stats for ${player.name}`,
         description: formatted,
-        asOf: stats.asof,
-        lastBattle: stats.player.lbtl
+        asOf: asof,
+        lastBattle: data.timestamp.last_battle
     });
 }

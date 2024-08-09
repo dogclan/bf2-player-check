@@ -66,14 +66,13 @@ export const weapons: Command = {
             }
         }
 
+        const url = new URL(
+            `/v2/players/${Project[player.project]}/by-id/${player.pid}/stats`,
+            'https://aspxstats.cetteup.com/'
+        );
+
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
-                params: {
-                    pid: player.pid,
-                    groupValues: 1,
-                    project: Project[player.project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             const embed = formatWeaponStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
@@ -90,15 +89,15 @@ export const weapons: Command = {
     }
 };
 
-function formatWeaponStats(player: Player, stats: PlayerInfoResponse): EmbedBuilder {
+function formatWeaponStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
     // Skip last weapon category since it's stats are always 0
-    const weapons = filterInvalidEntries(stats.grouped.weapons, Constants.INVALID_WEAPON_IDS);
+    const weapons = filterInvalidEntries(data.weapons, Constants.INVALID_WEAPON_IDS);
     const timeWithsFormatted = weapons.map((w) => {
-        const seconds = Number(w.tm);
+        const seconds = Number(w.time);
         return formatTimePlayed(seconds);
     });
     const kds = weapons.map((w) => {
-        const kd = Number(w.kl) / (Number(w.dt) || 1);
+        const kd = w.kills / (w.deaths || 1);
         return kd.toFixed(2);
     });
 
@@ -144,7 +143,7 @@ function formatWeaponStats(player: Player, stats: PlayerInfoResponse): EmbedBuil
     for (const weaponInfo of weapons) {
         const timeWith = timeWithsFormatted[weaponInfo.id];
         const kd = kds[weaponInfo.id];
-        const accuracy = `${Number(weaponInfo.ac).toFixed(2)}%`;
+        const accuracy = `${weaponInfo.accuracy.toFixed(2)}%`;
 
         formatted += Constants.WEAPON_CATEGORY_LABELS[weaponInfo.id].padEnd(columns.category.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
@@ -160,7 +159,7 @@ function formatWeaponStats(player: Player, stats: PlayerInfoResponse): EmbedBuil
         player: player,
         title: `Weapon stats for ${player.name}`,
         description: formatted,
-        asOf: stats.asof,
-        lastBattle: stats.player.lbtl
+        asOf: asof,
+        lastBattle: data.timestamp.last_battle
     });
 }

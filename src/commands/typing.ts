@@ -7,20 +7,20 @@ export interface Command extends ChatInputApplicationCommandData {
 }
 
 export type PlayerSearchResponse = {
-    asof: string
-    players: PlayerSearchResult[]
+    asof: number
+    results: PlayerSearchResult[]
 }
 
 export type PlayerSearchResult = {
-    n: string;
-    pid: string;
-    nick: string;
-    score: string;
+    n: number
+    pid: number
+    nick: string
+    score: number
 }
 
 export type EnrichedPlayerSearch = {
-    asof: string
-    players: EnrichedPlayerSearchResult[]
+    asof: number
+    results: EnrichedPlayerSearchResult[]
 }
 
 export type EnrichedPlayerSearchResult = PlayerSearchResult & {
@@ -34,95 +34,103 @@ export type Player = {
 }
 
 export type PlayerInfoResponse = {
-    asof: string
-    grouped: {
-        armies: ArmyInfo[]
-        classes: ClassInfo[]
-        vehicles: VehicleInfo[]
-        weapons: WeaponInfo[]
-    }
-    player: {
-        pid: string
+    asof: number
+    data: {
+        pid: number
         nick: string
-        scor: string
-        rank: string
-        jond: string
-        lbtl: string
-        time: string
-        wins: string
-        loss: string
-        kill: string
-        deth: string
-        ospm: string
-        klpm: string
-        osaa: string
+        rank: number
+        accuracy: number
+        timestamp: {
+            joined: number
+            last_battle: number
+        }
+        score: {
+            total: number
+            per_minute: number
+        }
+        time: {
+            total: number
+        }
+        rounds: {
+            wins: number
+            losses: number
+        }
+        kills: {
+            total: number
+            per_minute: number
+        }
+        deaths: {
+            total: number
+        }
+        weapons: WeaponInfo[]
+        vehicles: VehicleInfo[]
+        armies: ArmyInfo[]
+        kits: KitInfo[]
     }
-}
-
-export type ArmyInfo = {
-    id: number
-    tm: string
-    wn: string
-    lo: string
-    br: string
-}
-
-export type ClassInfo = {
-    id: number
-    tm: string
-    kl: string
-    dt: string
-    kd: string
-}
-
-export type VehicleInfo = {
-    id: number
-    tm: string
-    kl: string
-    dt: string
-    kd: string
-    kr: string
 }
 
 export type WeaponInfo = {
     id: number
-    tm: string
-    kl: string
-    dt: string
-    ac: string
-    kd: string
+    time: number
+    kills: number
+    deaths: number
+    accuracy: number
+    kd: number
+}
+
+export type VehicleInfo = {
+    id: number
+    time: number
+    kills: number
+    deaths: number
+    kd: number
+    road_kills: number
+}
+
+export type ArmyInfo = {
+    id: number
+    time: number
+    wins: number
+    losses: number
+    best_round_score: number
+}
+
+export type KitInfo = {
+    id: number
+    time: number
+    kills: number
+    deaths: number
+    kd: number
 }
 
 export type PlayerMapInfoResponse = {
-    asof: string
-    grouped: {
-        maps: MapInfo[]
-    }
-    player: {
-        pid: string
+    asof: number
+    data: {
+        pid: number
         nick: string
+        maps: MapInfo[]
     }
 }
 
 export type MapInfo = {
     id: number
-    tm: string
-    wn: string
-    ls: string
+    time: number
+    wins: number
+    losses: number
 }
 
 export type PlayerLeaderboardResponse = {
-    size: string
-    asof: string
-    players: PlayerLeaderboardEntry[]
+    size: number
+    asof: number
+    entries: PlayerLeaderboardEntry[]
 }
 
 export type PlayerLeaderboardEntry = {
-    n: string
-    pid: string
+    n: number
+    pid: number
     nick: string
-    playerrank: string
-    countrycode: string
+    rank: number
+    country_code: string
 }
 
 export type Columns = {

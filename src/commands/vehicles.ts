@@ -66,14 +66,13 @@ export const vehicles: Command = {
             }
         }
 
+        const url = new URL(
+            `/v2/players/${Project[player.project]}/by-id/${player.pid}/stats`,
+            'https://aspxstats.cetteup.com/'
+        );
+
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getplayerinfo', {
-                params: {
-                    pid: player.pid,
-                    groupValues: 1,
-                    project: Project[player.project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             const embed = formatVehicleStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
@@ -90,15 +89,14 @@ export const vehicles: Command = {
     }
 };
 
-function formatVehicleStats(Player: Player, stats: PlayerInfoResponse): EmbedBuilder {
+function formatVehicleStats(Player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
     // Ignore fifth vehicle since it's values are always 0
-    const vehicles = filterInvalidEntries(stats.grouped.vehicles, Constants.INVALID_VEHICLE_IDS);
+    const vehicles = filterInvalidEntries(data.vehicles, Constants.INVALID_VEHICLE_IDS);
     const timeWithsFormatted = vehicles.map((v) => {
-        const seconds = Number(v.tm);
-        return formatTimePlayed(seconds);
+        return formatTimePlayed(v.time);
     });
     const kds = vehicles.map((v) => {
-        const kd = Number(v.kl) / (Number(v.dt) || 1);
+        const kd = v.kills / (v.deaths || 1);
         return kd.toFixed(2);
     });
 
@@ -154,7 +152,7 @@ function formatVehicleStats(Player: Player, stats: PlayerInfoResponse): EmbedBui
         player: Player,
         title: `Vehicle stats for ${Player.name}`,
         description: formatted,
-        asOf: stats.asof,
-        lastBattle: stats.player.lbtl
+        asOf: asof,
+        lastBattle: data.timestamp.last_battle
     });
 }

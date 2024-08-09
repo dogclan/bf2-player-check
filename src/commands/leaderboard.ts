@@ -117,18 +117,19 @@ export const leaderboard: Command = {
         const sortBy = interaction.options.getInteger(Constants.LEADERBOARD_SORT_BY_OPTION_NAMES[category]) || 0;
         const page = interaction.options.getInteger('page') || 1;
 
+        // Score category uses names for different scores to sort by, not indexes => map numeric id to name
+        const leaderboardId = category == LeaderboardCategory.score ? LeaderboardScoreType[sortBy] : sortBy;
+        const url = new URL(
+            `/v2/leaderboards/${Project[project]}/${LeaderboardCategory[category]}/${leaderboardId}`,
+            'https://aspxstats.cetteup.com/'
+        );
+
+        url.searchParams.set('position', (1 + (page - 1) * Constants.LEADERBOARD_PER_PAGE).toString());
+        url.searchParams.set('before', '0');
+        url.searchParams.set('after', '19');
+
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/getleaderboard', {
-                params: {
-                    type: LeaderboardCategory[category],
-                    // Score category uses names for different scores to sort by, not indexes => map numeric id to name
-                    id: category == LeaderboardCategory.score ? LeaderboardScoreType[sortBy] : sortBy,
-                    pos: 1 + (page - 1) * Constants.LEADERBOARD_PER_PAGE,
-                    before: 0,
-                    after: 19,
-                    project: Project[project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             const embed = formatLeaderboardPage(category, sortBy, page, project, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
@@ -156,7 +157,7 @@ function leaderboardCategoryFromName(name: string): LeaderboardCategory {
     }
 }
 
-function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, data: PlayerLeaderboardResponse): EmbedBuilder {
+function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, { size, asof, entries }: PlayerLeaderboardResponse): EmbedBuilder {
     let sortedByField: EmbedField;
     switch (category) {
         case LeaderboardCategory.weapon:
@@ -177,15 +178,15 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         sortedByField,
         { name: '\u200B', value: '\u200B', inline: true },
         { name: 'Page', value: `${page}`, inline: true },
-        { name: 'Total pages', value: `${Math.ceil(Number(data.size) / Constants.LEADERBOARD_PER_PAGE)}`, inline: true },
-        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
+        { name: 'Total pages', value: `${Math.ceil(size / Constants.LEADERBOARD_PER_PAGE)}`, inline: true },
+        { name: 'As of', value: moment(asof * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
     ];
 
     // Remove clan tags from names
-    const players = data.players.map((player) => ({ ...player, 'nick': player.nick.trim().split(' ').pop() || player.nick }));
+    entries = entries.map((e) => ({ ...e, 'nick': e.nick.trim().split(' ').pop() || e.nick }));
 
     let formatted: string;
-    if (players.length == 0) {
+    if (entries.length == 0) {
         formatted = 'There seem to be no more players on this leaderboard.';
     }
     else {
@@ -193,11 +194,11 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         const padding = 3;
         const columns: LeaderboardColumns = {
             position: {
-                width: longestStringLen(players.map((p) => p.n), 1),
+                width: longestStringLen(entries.map((e) => e.n.toString()), 1),
                 heading: '#'
             },
             name: {
-                width: longestStringLen(players.map((p) => p.nick), 10),
+                width: longestStringLen(entries.map((e) => e.nick), 10),
                 heading: 'Name'
             },
             country: {
@@ -226,11 +227,11 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         // Add separator
         formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-        for (const player of players) {
+        for (const entry of entries) {
             // Align position to the right for better readability
-            formatted += `${player.n.padStart(columns.position.width - padding, ' ')}${''.padEnd(padding, ' ')}`;
-            formatted += `${player.nick.padEnd(columns.name.width, ' ')}`;
-            formatted += `${player.countrycode.padEnd(columns.country.width, ' ') }\n`;
+            formatted += `${entry.n.toString().padStart(columns.position.width - padding, ' ')}${''.padEnd(padding, ' ')}`;
+            formatted += `${entry.nick.padEnd(columns.name.width, ' ')}`;
+            formatted += `${entry.country_code.padEnd(columns.country.width, ' ') }\n`;
         }
 
         // End markdown embed

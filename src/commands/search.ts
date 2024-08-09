@@ -39,15 +39,17 @@ export const search: Command = {
         await interaction.deferReply();
         const project = interaction.options.getInteger('project', true);
         const name = interaction.options.getString('name', true);
+
+        const url = new URL(
+            `v2/players/${Project[project]}/search-nick/${encodeURIComponent(name)}`,
+            'https://aspxstats.cetteup.com/'
+        );
+
+        url.searchParams.set('where', 'a');
+
         let data: PlayerSearchResponse;
         try {
-            const resp = await axios.get('https://bf2-stats-jsonifier.cetteup.com/searchforplayers', {
-                params: {
-                    nick: name,
-                    where: 'a',
-                    project: Project[project]
-                }
-            });
+            const resp = await axios.get(url.toString());
             data = resp.data;
         }
         catch (e: any) {
@@ -77,14 +79,14 @@ export const search: Command = {
         } while (hasNextPage);
 
         const enrichedResults: EnrichedPlayerSearchResult[] = [];
-        for (const player of data.players) {
+        for (const result of data.results) {
             const server = servers.find((s) => s.players.some((p) => {
                 // Make sure pid matches
                 // Comparing name leads to issues in rare cases where long player names are cut off
-                return p.pid == Number(player.pid);
+                return p.pid == result.pid;
             }));
 
-            const enrichedResult: EnrichedPlayerSearchResult = player;
+            const enrichedResult: EnrichedPlayerSearchResult = result;
             if (server) {
                 enrichedResult.currentServer = server.name;
             }
@@ -92,24 +94,24 @@ export const search: Command = {
             enrichedResults.push(enrichedResult);
         }
 
-        const embed = formatSearchResultList(name, project, { asof: data.asof, players: enrichedResults });
+        const embed = formatSearchResultList(name, project, { asof: data.asof, results: enrichedResults });
         await interaction.editReply({ embeds: [embed] });
     }
 };
 
-function formatSearchResultList(name: string, project: Project, data: EnrichedPlayerSearch): EmbedBuilder {
+function formatSearchResultList(name: string, project: Project, { asof, results }: EnrichedPlayerSearch): EmbedBuilder {
     let formatted: string;
     const fields: EmbedField[] = [
-        { name: 'As of', value: moment(Number(data.asof) * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'As of', value: moment(asof * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
     ];
-    const players = data.players
+    results = results
         // Remove clan tags from names
-        .map((player) => ({ ...player, 'nick': player.nick.trim().split(' ').pop() || player.nick }))
+        .map((r) => ({ ...r, 'nick': r.nick.trim().split(' ').pop() || r.nick }))
         // Filter out players who's clan tag matches but actual name does match the given name
-        .filter((player) => player.nick.toLowerCase().includes(name.toLowerCase()));
-    if (players.length > 0) {
-        const serverNames = players.map((p) => {
-            const serverName = p.currentServer?.trim() || '';
+        .filter((r) => r.nick.toLowerCase().includes(name.toLowerCase()));
+    if (results.length > 0) {
+        const serverNames = results.map((r) => {
+            const serverName = r.currentServer?.trim() || '';
             return fitStringToLength(serverName, 18);
         });
 
@@ -117,11 +119,11 @@ function formatSearchResultList(name: string, project: Project, data: EnrichedPl
         const padding = 3;
         const columns: SearchColumns = {
             name: {
-                width: longestStringLen(players.map((p) => p.nick), 10),
+                width: longestStringLen(results.map((r) => r.nick), 10),
                 heading: 'Name'
             },
             pid: {
-                width: longestStringLen(players.map((p) => p.pid), 6),
+                width: longestStringLen(results.map((r) => r.pid.toString()), 6),
                 heading: 'PID'
             },
             currentServer: {
@@ -150,12 +152,12 @@ function formatSearchResultList(name: string, project: Project, data: EnrichedPl
         // Add separator
         formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-        for (const [index, player] of players.entries()) {
+        for (const [index, result] of results.entries()) {
             const serverName = serverNames[index];
 
-            formatted += `${player.nick.padEnd(columns.name.width, ' ') }`;
+            formatted += `${result.nick.padEnd(columns.name.width, ' ') }`;
             // Align pid to the right for better readability
-            formatted += `${player.pid.padStart(columns.pid.width - padding, ' ') }${''.padEnd(padding, ' ')}`;
+            formatted += `${result.pid.toString().padStart(columns.pid.width - padding, ' ') }${''.padEnd(padding, ' ')}`;
             formatted += `${serverName.padEnd(columns.currentServer.width, ' ') }\n`;
         }
 
@@ -164,7 +166,7 @@ function formatSearchResultList(name: string, project: Project, data: EnrichedPl
 
         fields.push({
             name: 'Results',
-            value: players.length.toString(),
+            value: results.length.toString(),
             inline: true
         }, {
             name: 'Results max.',
