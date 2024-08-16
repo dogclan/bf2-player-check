@@ -34,8 +34,8 @@
   "devDependencies": {
     "@tsconfig/node18": "18.2.4",
     "@tsconfig/recommended": "1.0.7",
-    "@typescript-eslint/eslint-plugin": "5.62.0",
-    "@typescript-eslint/parser": "5.62.0",
+    "@typescript-eslint/eslint-plugin": "8.1.0",
+    "@typescript-eslint/parser": "8.1.0",
     "eslint": "8.57.0",
     "typescript": "5.5.4"
   },
