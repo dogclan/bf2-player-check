@@ -1,7 +1,6 @@
 export enum Project {
     bf2hub = 0,
-    playbf2,
-    phoenix
+    playbf2
 }
 
 export enum LeaderboardCategory {
