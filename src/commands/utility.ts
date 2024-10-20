@@ -91,6 +91,8 @@ export function getAuthorUrl(player: Player): string {
             return `https://www.bf2hub.com/stats/${player.pid}`;
         case Project.playbf2:
             return `http://bf2.tgamer.ru/stats/?pid=${player.pid}`;
+        case Project.b2bf2:
+            return `https://b2bf2.net/bfhq?id=${player.pid}`;
         default:
             return Constants.PROJECT_WEBSITES[player.project];
     }

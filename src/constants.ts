@@ -3,19 +3,23 @@ import { LeaderboardCategory, LeaderboardScoreType, Project } from './typing';
 export default abstract class Constants {
     public static readonly PROJECT_LABELS = {
         [Project.bf2hub]: 'BF2Hub',
-        [Project.playbf2]: 'PlayBF2'
+        [Project.playbf2]: 'PlayBF2',
+        [Project.b2bf2]: 'B2BF2'
     };
     public static readonly PROJECT_ICONS = {
         [Project.bf2hub]: 'https://cdn.discordapp.com/icons/377985116758081541/525b59c06d45c14479657638cae8091a.webp',
-        [Project.playbf2]: 'https://cdn.discordapp.com/icons/376417565511122944/04585bf0c0c5dc0ff5d85fe205e5a9dd.webp'
+        [Project.playbf2]: 'https://cdn.discordapp.com/icons/376417565511122944/04585bf0c0c5dc0ff5d85fe205e5a9dd.webp',
+        [Project.b2bf2]: undefined
     };
     public static PROJECT_WEBSITES = {
         [Project.bf2hub]: 'https://www.bf2hub.com/',
-        [Project.playbf2]: 'https://playbf2.tilda.ws/en'
+        [Project.playbf2]: 'https://playbf2.tilda.ws/en',
+        [Project.b2bf2]: 'https://b2bf2.net/'
     };
     public static readonly PROJECT_RESULT_LIMITS = {
         [Project.bf2hub]: 20,
-        [Project.playbf2]: 50
+        [Project.playbf2]: 50,
+        [Project.b2bf2]: 20,
     };
 
     // Not a single player has stats for weapon 13 + could not find any reference
