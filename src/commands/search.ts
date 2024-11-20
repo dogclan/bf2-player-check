@@ -11,8 +11,7 @@ import {
     SearchColumns
 } from './typing';
 import cmdLogger from './logger';
-import moment from 'moment/moment';
-import { createEmbed, fitStringToLength, longestStringLen } from './utility';
+import { createEmbed, fitStringToLength, formatTimestamp, longestStringLen } from './utility';
 
 export const search: Command = {
     name: 'search',
@@ -103,7 +102,7 @@ export const search: Command = {
 function formatSearchResultList(name: string, project: Project, { asof, results }: EnrichedPlayerSearch): EmbedBuilder {
     let formatted: string;
     const fields: EmbedField[] = [
-        { name: 'As of', value: moment(asof * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'As of', value: formatTimestamp(asof), inline: true },
     ];
     results = results
         // Remove clan tags from names

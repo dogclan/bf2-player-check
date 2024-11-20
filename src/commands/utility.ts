@@ -65,6 +65,13 @@ export function formatTimePlayed(seconds: number): string {
     return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
 }
 
+export function formatTimestamp(timestamp: number): string {
+    if (timestamp == 0) {
+        return 'n/a';
+    }
+    return moment(timestamp * 1000).format('YYYY-MM-DD HH:mm:ss');
+}
+
 export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo | MapInfo>(entries: T[], invalidIds: number[], updateIndexes = true): T[] {
     const filtered = entries.filter((e) => !invalidIds.includes(e.id));
     // Rewrite ids (which are just the index)
@@ -123,12 +130,12 @@ export function createStatsEmbed({
     lastBattle
 }: { player: Player, title: string, description: string, asOf: number, lastBattle?: number }): EmbedBuilder {
     const fields = [
-        { name: 'As of', value: moment(asOf * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
+        { name: 'As of', value: formatTimestamp(asOf), inline: true }
     ];
     if (lastBattle) {
         fields.unshift({
             name: 'Last battle',
-            value: moment(lastBattle * 1000).format('YYYY-MM-DD HH:mm:ss'),
+            value: formatTimestamp(lastBattle),
             inline: true
         });
     }

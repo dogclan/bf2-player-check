@@ -10,8 +10,7 @@ import {
 } from 'discord.js';
 import axios from 'axios';
 import cmdLogger from './logger';
-import moment from 'moment/moment';
-import { createEmbed, longestStringLen } from './utility';
+import { createEmbed, formatTimestamp, longestStringLen } from './utility';
 
 const commonOptions: Record<'project' | 'page', ApplicationCommandNumericOptionData> = {
     project: {
@@ -180,7 +179,7 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         { name: '\u200B', value: '\u200B', inline: true },
         { name: 'Page', value: `${page}`, inline: true },
         { name: 'Total pages', value: `${Math.ceil(size / Constants.LEADERBOARD_PER_PAGE)}`, inline: true },
-        { name: 'As of', value: moment(asof * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true }
+        { name: 'As of', value: formatTimestamp(asof), inline: true }
     ];
 
     // Remove clan tags from names

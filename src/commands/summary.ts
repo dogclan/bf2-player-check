@@ -13,11 +13,10 @@ import cmdLogger from './logger';
 import {
     createEmbed,
     fetchPlayerNameOptionChoices, filterInvalidEntries,
-    formatTimePlayed,
+    formatTimePlayed, formatTimestamp,
     getAuthorUrl,
     sortByKillsAndTimeAsc
 } from './utility';
-import moment from 'moment/moment';
 
 export const summary: Command = {
     name: 'summary',
@@ -103,12 +102,12 @@ function formatStatsSummary(player: Player, { asof, data }: PlayerInfoResponse):
         { name: 'Kills per minute', value: data.kills.per_minute.toFixed(2), inline: true },
         { name: 'K/D', value: (data.kills.total / (data.deaths.total || 1)).toFixed(2), inline: true },
         { name: 'Accuracy', value: `${data.accuracy.toFixed(2)}%`, inline: true },
-        { name: 'Enlisted', value: moment(data.timestamp.joined * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Enlisted', value: formatTimestamp(data.timestamp.joined), inline: true },
         { name: 'Best kit', value: Constants.KIT_LABELS[bestKitId], inline: true },
         { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
         { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
-        { name: 'Last battle', value: moment(data.timestamp.last_battle * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
-        { name: 'As of', value: moment(asof * 1000).format('YYYY-MM-DD HH:mm:ss'), inline: true },
+        { name: 'Last battle', value: formatTimestamp(data.timestamp.last_battle), inline: true },
+        { name: 'As of', value: formatTimestamp(asof), inline: true },
     ];
 
     const embed = createEmbed({
