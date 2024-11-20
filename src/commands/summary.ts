@@ -4,7 +4,7 @@ import {
     AutocompleteInteraction,
     ChatInputCommandInteraction,
     EmbedBuilder,
-    EmbedField
+    EmbedField, escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
 import { Project } from '../typing';
@@ -78,8 +78,8 @@ export const summary: Command = {
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
-            cmdLogger.error('Failed to fetch player info for', name, Project[player.project], e?.response?.status, e?.code);
-            await interaction.editReply(`Sorry, failed to fetch stats for ${player.name} from ${Constants.PROJECT_LABELS[player.project]}.`);
+            cmdLogger.error('Failed to fetch player info for', player.name, Project[player.project], e?.response?.status, e?.code);
+            await interaction.editReply(`Sorry, failed to fetch stats for ${escapeMarkdown(player.name)} from ${Constants.PROJECT_LABELS[player.project]}.`);
         }
     },
     autocomplete: async (interaction: AutocompleteInteraction) => {
@@ -111,7 +111,7 @@ function formatStatsSummary(player: Player, { asof, data }: PlayerInfoResponse):
     ];
 
     const embed = createEmbed({
-        title: `Stats summary for ${player.name}`,
+        title: `Stats summary for ${escapeMarkdown(player.name)}`,
         description: '',
         fields,
         author: {

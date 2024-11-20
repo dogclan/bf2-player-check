@@ -3,7 +3,7 @@ import {
     ApplicationCommandOptionType,
     AutocompleteInteraction,
     ChatInputCommandInteraction,
-    EmbedBuilder
+    EmbedBuilder, escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
 import { Project } from '../typing';
@@ -79,7 +79,7 @@ export const maps: Command = {
         }
         catch (e: any) {
             cmdLogger.error('Failed to fetch player info for', player.name, Project[player.project], e?.response?.status, e?.code);
-            await interaction.editReply(`Sorry, failed to fetch stats for ${player.name} from ${Constants.PROJECT_LABELS[player.project]}.`);
+            await interaction.editReply(`Sorry, failed to fetch stats for ${escapeMarkdown(player.name)} from ${Constants.PROJECT_LABELS[player.project]}.`);
         }
     },
     autocomplete: async (interaction: AutocompleteInteraction) => {
@@ -152,7 +152,7 @@ function formatMapStats(player: Player, { asof, data }: PlayerMapInfoResponse): 
 
     return createStatsEmbed({
         player: player,
-        title: `Map stats for ${player.name}`,
+        title: `Map stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
         asOf: asof,
     });

@@ -3,7 +3,7 @@ import {
     ApplicationCommandOptionType,
     AutocompleteInteraction,
     ChatInputCommandInteraction,
-    EmbedBuilder
+    EmbedBuilder, escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
 import { Project } from '../typing';
@@ -79,7 +79,7 @@ export const vehicles: Command = {
         }
         catch (e: any) {
             cmdLogger.error('Failed to fetch player info for', player.name, Project[player.project], e?.response?.status, e?.code);
-            await interaction.editReply(`Sorry, failed to fetch stats for ${player.name} from ${Constants.PROJECT_LABELS[player.project]}.`);
+            await interaction.editReply(`Sorry, failed to fetch stats for ${escapeMarkdown(player.name)} from ${Constants.PROJECT_LABELS[player.project]}.`);
         }
     },
     autocomplete: async (interaction: AutocompleteInteraction) => {
@@ -90,7 +90,7 @@ export const vehicles: Command = {
     }
 };
 
-function formatVehicleStats(Player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+function formatVehicleStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
     // Ignore fifth vehicle since it's values are always 0
     const vehicles = filterInvalidEntries(data.vehicles, Constants.INVALID_VEHICLE_IDS);
     const timeWithsFormatted = vehicles.map((v) => {
@@ -150,8 +150,8 @@ function formatVehicleStats(Player: Player, { asof, data }: PlayerInfoResponse):
     formatted += '```';
 
     return createStatsEmbed({
-        player: Player,
-        title: `Vehicle stats for ${Player.name}`,
+        player: player,
+        title: `Vehicle stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
         asOf: asof,
         lastBattle: data.timestamp.last_battle
