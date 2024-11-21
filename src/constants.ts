@@ -69,6 +69,19 @@ export default abstract class Constants {
         'Sniper'
     ];
 
+    public static readonly ARMY_LABELS = [
+        'USMC',
+        'MEC',
+        'PLA',
+        'Navy Seal',
+        'SAS',
+        'Spetznas',
+        'MEC SF',
+        'Rebels',
+        'Insurgent',
+        'EU'
+    ]
+
     public static readonly MAP_LABELS: Record<number, string> = {
         0: 'Kubra Dam',
         1: 'Mashtuur City',

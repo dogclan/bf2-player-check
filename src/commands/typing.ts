@@ -161,6 +161,12 @@ export type VehicleStatsColumns = Columns & {
     kd: Column
 }
 
+export type ArmyStatsColumns = Columns & {
+    army: Column
+    timeWith: Column
+    wl: Column
+}
+
 export type MapStatsColumns = Columns & {
     name: Column
     timeWith: Column
