@@ -179,6 +179,12 @@ export type LeaderboardColumns = Columns & {
     country: Column
 }
 
+export type ActivityColumns = Columns & {
+    server: Column
+    map: Column
+    when: Column
+}
+
 export type BflistServer = {
     name: string
     players: BflistPlayer[]

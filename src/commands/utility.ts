@@ -41,7 +41,7 @@ export function longestStringLen(strings: string[], fallback: number): number {
 }
 
 export function fitStringToLength(str: string, maxLength: number, trailer = '...'): string {
-    if (str.length < maxLength) {
+    if (str.length <= maxLength) {
         return str;
     }
     return str.substring(0, maxLength - trailer.length) + trailer;
@@ -62,6 +62,10 @@ export function secondsToRemainderMinutes(num: number): number {
 }
 
 export function formatTimePlayed(seconds: number): string {
+    const hours = secondsToHours(seconds);
+    if (hours == 0) {
+        return `${secondsToRemainderMinutes(seconds)}m`;
+    }
     return `${secondsToHours(seconds)}h ${secondsToRemainderMinutes(seconds)}m`;
 }
 
