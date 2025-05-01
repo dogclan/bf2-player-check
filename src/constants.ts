@@ -80,7 +80,7 @@ export default abstract class Constants {
         'Rebels',
         'Insurgent',
         'EU'
-    ]
+    ];
 
     public static readonly MAP_LABELS: Record<number, string> = {
         0: 'Kubra Dam',
