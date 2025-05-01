@@ -10,4 +10,6 @@ ADD . /usr/src/app
 
 RUN npm run build-ts
 
+RUN npm prune --omit=dev
+
 CMD ["node", "dist/index.js"]
