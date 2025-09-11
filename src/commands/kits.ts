@@ -84,7 +84,7 @@ export const kits: Command = {
     }
 };
 
-function formatKitStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+function formatKitStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
     const timeWithsFormatted = data.kits.map((k) => {
         return formatTimePlayed(k.time);
     });
@@ -145,7 +145,6 @@ function formatKitStats(player: Player, { asof, data }: PlayerInfoResponse): Emb
         player: player,
         title: `Kit stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
-        asOf: asof,
         lastBattle: data.timestamp.last_battle
     });
 }

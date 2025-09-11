@@ -130,14 +130,11 @@ export function createStatsEmbed({
     player,
     title,
     description,
-    asOf,
     lastBattle
-}: { player: Player, title: string, description: string, asOf: number, lastBattle?: number }): EmbedBuilder {
-    const fields = [
-        { name: 'As of', value: formatTimestamp(asOf), inline: true }
-    ];
+}: { player: Player, title: string, description: string, lastBattle?: number }): EmbedBuilder {
+    const fields = [];
     if (lastBattle) {
-        fields.unshift({
+        fields.push({
             name: 'Last battle',
             value: formatTimestamp(lastBattle),
             inline: true

@@ -90,7 +90,7 @@ export const weapons: Command = {
     }
 };
 
-function formatWeaponStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
     // Skip last weapon category since it's stats are always 0
     const weapons = filterInvalidEntries(data.weapons, Constants.INVALID_WEAPON_IDS);
     const timeWithsFormatted = weapons.map((w) => {
@@ -160,7 +160,6 @@ function formatWeaponStats(player: Player, { asof, data }: PlayerInfoResponse): 
         player: player,
         title: `Weapon stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
-        asOf: asof,
         lastBattle: data.timestamp.last_battle
     });
 }

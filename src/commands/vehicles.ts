@@ -90,7 +90,7 @@ export const vehicles: Command = {
     }
 };
 
-function formatVehicleStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+function formatVehicleStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
     // Ignore fifth vehicle since it's values are always 0
     const vehicles = filterInvalidEntries(data.vehicles, Constants.INVALID_VEHICLE_IDS);
     const timeWithsFormatted = vehicles.map((v) => {
@@ -153,7 +153,6 @@ function formatVehicleStats(player: Player, { asof, data }: PlayerInfoResponse):
         player: player,
         title: `Vehicle stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
-        asOf: asof,
         lastBattle: data.timestamp.last_battle
     });
 }

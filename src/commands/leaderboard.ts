@@ -10,7 +10,7 @@ import {
 } from 'discord.js';
 import axios from 'axios';
 import cmdLogger from './logger';
-import { createEmbed, formatTimestamp, longestStringLen } from './utility';
+import { createEmbed, longestStringLen } from './utility';
 
 const commonOptions: Record<'project' | 'page', ApplicationCommandNumericOptionData> = {
     project: {
@@ -157,7 +157,7 @@ function leaderboardCategoryFromName(name: string): LeaderboardCategory {
     }
 }
 
-function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, { size, asof, entries }: PlayerLeaderboardResponse): EmbedBuilder {
+function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, { size, entries }: PlayerLeaderboardResponse): EmbedBuilder {
     let sortedByField: EmbedField;
     switch (category) {
         case LeaderboardCategory.weapon:
@@ -179,7 +179,6 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         { name: '\u200B', value: '\u200B', inline: true },
         { name: 'Page', value: `${page}`, inline: true },
         { name: 'Total pages', value: `${Math.ceil(size / Constants.LEADERBOARD_PER_PAGE)}`, inline: true },
-        { name: 'As of', value: formatTimestamp(asof), inline: true }
     ];
 
     // Remove clan tags from names

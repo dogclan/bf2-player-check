@@ -84,7 +84,7 @@ export const armies: Command = {
     }
 };
 
-function formatArmyStats(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
     const timeWithsFormatted = data.armies.map((k) => {
         return formatTimePlayed(k.time);
     });
@@ -145,7 +145,6 @@ function formatArmyStats(player: Player, { asof, data }: PlayerInfoResponse): Em
         player: player,
         title: `Army stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
-        asOf: asof,
         lastBattle: data.timestamp.last_battle
     });
 }

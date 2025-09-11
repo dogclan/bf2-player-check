@@ -18,11 +18,6 @@ export type PlayerSearchResult = {
     score: number
 }
 
-export type EnrichedPlayerSearch = {
-    asof: number
-    results: EnrichedPlayerSearchResult[]
-}
-
 export type EnrichedPlayerSearchResult = PlayerSearchResult & {
     currentServer?: string
 }

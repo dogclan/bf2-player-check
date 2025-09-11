@@ -90,7 +90,7 @@ export const summary: Command = {
     }
 };
 
-function formatStatsSummary(player: Player, { asof, data }: PlayerInfoResponse): EmbedBuilder {
+function formatStatsSummary(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
     const bestKitId = data.kits.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
     const vehicles = filterInvalidEntries(data.vehicles, Constants.INVALID_VEHICLE_IDS);
     const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
@@ -107,7 +107,6 @@ function formatStatsSummary(player: Player, { asof, data }: PlayerInfoResponse):
         { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
         { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
         { name: 'Last battle', value: formatTimestamp(data.timestamp.last_battle), inline: true },
-        { name: 'As of', value: formatTimestamp(asof), inline: true },
     ];
 
     const embed = createEmbed({

@@ -5,13 +5,12 @@ import { Project } from '../typing';
 import {
     BflistServer,
     Command,
-    EnrichedPlayerSearch,
     EnrichedPlayerSearchResult,
     PlayerSearchResponse,
     SearchColumns
 } from './typing';
 import cmdLogger from './logger';
-import { createEmbed, fitStringToLength, formatTimestamp, longestStringLen } from './utility';
+import { createEmbed, fitStringToLength, longestStringLen } from './utility';
 
 export const search: Command = {
     name: 'search',
@@ -94,16 +93,14 @@ export const search: Command = {
             enrichedResults.push(enrichedResult);
         }
 
-        const embed = formatSearchResultList(name, project, { asof: data.asof, results: enrichedResults });
+        const embed = formatSearchResultList(name, project, enrichedResults);
         await interaction.editReply({ embeds: [embed] });
     }
 };
 
-function formatSearchResultList(name: string, project: Project, { asof, results }: EnrichedPlayerSearch): EmbedBuilder {
+function formatSearchResultList(name: string, project: Project, results: EnrichedPlayerSearchResult[]): EmbedBuilder {
     let formatted: string;
-    const fields: EmbedField[] = [
-        { name: 'As of', value: formatTimestamp(asof), inline: true },
-    ];
+    const fields: EmbedField[] = [];
     results = results
         // Remove clan tags from names
         .map((r) => ({ ...r, 'nick': r.nick.trim().split(' ').pop() || r.nick }))

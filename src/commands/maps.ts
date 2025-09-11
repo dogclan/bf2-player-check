@@ -90,7 +90,7 @@ export const maps: Command = {
     }
 };
 
-function formatMapStats(player: Player, { asof, data }: PlayerMapInfoResponse): EmbedBuilder {
+function formatMapStats(player: Player, { data }: PlayerMapInfoResponse): EmbedBuilder {
     const maps = filterInvalidEntries(data.maps, Constants.INVALID_MAP_IDS, false);
     const timeWithsFormatted: Record<number, string> = {};
     const winRates: Record<number, string> = {};
@@ -154,6 +154,5 @@ function formatMapStats(player: Player, { asof, data }: PlayerMapInfoResponse): 
         player: player,
         title: `Map stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
-        asOf: asof,
     });
 }
