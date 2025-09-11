@@ -118,6 +118,9 @@ function formatStatsSummary(player: Player, { data }: PlayerInfoResponse): Embed
             name: Constants.PROJECT_LABELS[player.project],
             iconURL: Constants.PROJECT_ICONS[player.project],
             url: getAuthorUrl(player)
+        },
+        footer: {
+            text: `Player ID: ${player.pid}`
         }
     });
 

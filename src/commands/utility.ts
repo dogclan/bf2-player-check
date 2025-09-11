@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Project } from '../typing';
 import Constants from '../constants';
-import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedField } from 'discord.js';
+import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedData, EmbedFooterData } from 'discord.js';
 import Config from '../config';
 import { KitInfo, MapInfo, Player, PlayerSearchResponse, VehicleInfo, WeaponInfo } from './typing';
 
@@ -108,18 +108,8 @@ export function getAuthorUrl(player: Player): string {
     }
 }
 
-export function createEmbed({
-    title,
-    description,
-    fields,
-    author
-}: { title: string, description: string, fields: EmbedField[], author: EmbedAuthorData }): EmbedBuilder {
-    const embed = new EmbedBuilder({
-        title,
-        description,
-        fields,
-        author
-    });
+export function createEmbed(data: EmbedData): EmbedBuilder {
+    const embed = new EmbedBuilder(data);
     embed.setColor(Config.EMBED_COLOR as ColorResolvable);
 
     return embed;
@@ -146,10 +136,15 @@ export function createStatsEmbed({
         url: getAuthorUrl(player)
     };
 
+    const footer: EmbedFooterData = {
+        text: `Player ID: ${player.pid}`
+    };
+
     return createEmbed({
         title,
         description,
         fields,
-        author
+        author,
+        footer
     });
 }
