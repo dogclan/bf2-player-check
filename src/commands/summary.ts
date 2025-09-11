@@ -101,11 +101,12 @@ function formatStatsSummary(player: Player, { data }: PlayerInfoResponse): Embed
         { name: 'Score per minute', value: data.score.per_minute.toFixed(2), inline: true },
         { name: 'Kills per minute', value: data.kills.per_minute.toFixed(2), inline: true },
         { name: 'K/D', value: (data.kills.total / (data.deaths.total || 1)).toFixed(2), inline: true },
+        { name: 'W/L', value: (data.rounds.wins / (data.rounds.losses || 1)).toFixed(2), inline: true },
         { name: 'Accuracy', value: `${data.accuracy.toFixed(2)}%`, inline: true },
-        { name: 'Enlisted', value: formatTimestamp(data.timestamp.joined), inline: true },
         { name: 'Best kit', value: Constants.KIT_LABELS[bestKitId], inline: true },
         { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
         { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
+        { name: 'Enlisted', value: formatTimestamp(data.timestamp.joined), inline: true },
         { name: 'Last battle', value: formatTimestamp(data.timestamp.last_battle), inline: true },
     ];
 
