@@ -3,7 +3,6 @@ import { Project } from '../typing';
 import Constants from '../constants';
 import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedField } from 'discord.js';
 import Config from '../config';
-import moment from 'moment';
 import { KitInfo, MapInfo, Player, PlayerSearchResponse, VehicleInfo, WeaponInfo } from './typing';
 
 export async function fetchPlayerNameOptionChoices(project: number | null, focusedValue: string): Promise<{ name: string, value: string }[]> {
@@ -73,7 +72,7 @@ export function formatTimestamp(timestamp: number): string {
     if (timestamp == 0) {
         return 'n/a';
     }
-    return moment(timestamp * 1000).format('YYYY-MM-DD HH:mm:ss');
+    return `<t:${timestamp}:f>`;
 }
 
 export function filterInvalidEntries<T extends WeaponInfo | VehicleInfo | MapInfo>(entries: T[], invalidIds: number[], updateIndexes = true): T[] {
