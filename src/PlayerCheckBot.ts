@@ -44,7 +44,7 @@ class PlayerCheckBot {
             weapons
         ];
 
-        this.client.once('ready', () => {
+        this.client.once('clientReady', () => {
             this.client.user?.presence.set({ status: 'online' });
 
             this.logger.info('Client is ready, registering commands');
