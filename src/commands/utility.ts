@@ -34,6 +34,15 @@ export async function fetchPlayerNameOptionChoices(project: number | null, focus
         .map((choice) => ({ name: choice, value: choice }));
 }
 
+export async function resolvePlayerByName(project: number, name: string): Promise<Player> {
+    const resp = await axios.get(`https://r3solve-api.cetteup.com/v1/personas/bf2/${Project[project]}/by-name/${encodeURIComponent(name)}`);
+    return {
+        pid: resp.data.id,
+        name: resp.data.name,
+        project: project
+    };
+}
+
 export function longestStringLen(strings: string[], fallback: number): number {
     const longest = strings.slice().sort((a, b) => a.length - b.length).pop();
     return longest?.length || fallback;

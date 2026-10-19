@@ -9,7 +9,7 @@ import Constants from '../constants';
 import { Project } from '../typing';
 import { ArmyStatsColumns, Command, Player, PlayerInfoResponse } from './typing';
 import cmdLogger from './logger';
-import { createStatsEmbed, fetchPlayerNameOptionChoices, formatTimePlayed, longestStringLen } from './utility';
+import { createStatsEmbed, fetchPlayerNameOptionChoices, formatTimePlayed, longestStringLen, resolvePlayerByName } from './utility';
 
 export const armies: Command = {
     name: 'armies',
@@ -42,12 +42,7 @@ export const armies: Command = {
 
         let player: Player;
         try {
-            const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${encodeURIComponent(name)}`);
-            player = {
-                pid: resp.data.pid,
-                name: resp.data.name,
-                project: project
-            };
+            player = await resolvePlayerByName(project, name);
         }
         catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {

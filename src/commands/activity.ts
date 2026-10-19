@@ -17,7 +17,8 @@ import {
     fitStringToLength,
     formatTimePlayed,
     getAuthorUrl,
-    longestStringLen
+    longestStringLen,
+    resolvePlayerByName
 } from './utility';
 import cmdLogger from './logger';
 import moment from 'moment';
@@ -53,12 +54,7 @@ export const activity: Command = {
 
         let player: Player;
         try {
-            const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${encodeURIComponent(name)}`);
-            player = {
-                pid: resp.data.pid,
-                name: resp.data.name,
-                project: project
-            };
+            player = await resolvePlayerByName(project, name);
         } catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {
                 await interaction.editReply(`Sorry, could not find a BF2 player called "${name}" on ${Constants.PROJECT_LABELS[project as Project]}.`);

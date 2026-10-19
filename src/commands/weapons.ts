@@ -14,7 +14,8 @@ import {
     fetchPlayerNameOptionChoices,
     filterInvalidEntries,
     formatTimePlayed,
-    longestStringLen
+    longestStringLen,
+    resolvePlayerByName
 } from './utility';
 
 export const weapons: Command = {
@@ -48,12 +49,7 @@ export const weapons: Command = {
 
         let player: Player;
         try {
-            const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${encodeURIComponent(name)}`);
-            player = {
-                pid: resp.data.pid,
-                name: resp.data.name,
-                project: project
-            };
+            player = await resolvePlayerByName(project, name);
         }
         catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {

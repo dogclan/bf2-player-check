@@ -1,10 +1,5 @@
 import axios from 'axios';
-import {
-    ApplicationCommandOptionType,
-    AutocompleteInteraction,
-    ChatInputCommandInteraction,
-    EmbedBuilder, escapeMarkdown
-} from 'discord.js';
+import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, escapeMarkdown } from 'discord.js';
 import Constants from '../constants';
 import { Project } from '../typing';
 import { Command, MapStatsColumns, Player, PlayerMapInfoResponse } from './typing';
@@ -14,7 +9,8 @@ import {
     fetchPlayerNameOptionChoices,
     filterInvalidEntries,
     formatTimePlayed,
-    longestStringLen
+    longestStringLen,
+    resolvePlayerByName
 } from './utility';
 
 export const maps: Command = {
@@ -48,12 +44,7 @@ export const maps: Command = {
 
         let player: Player;
         try {
-            const resp = await axios.get(`https://resolve-api.cetteup.com/persona/${Project[project]}/bf2/by-name/${encodeURIComponent(name)}`);
-            player = {
-                pid: resp.data.pid,
-                name: resp.data.name,
-                project: project
-            };
+            player = await resolvePlayerByName(project, name);
         }
         catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {
