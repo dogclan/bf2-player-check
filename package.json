@@ -1,7 +1,7 @@
 {
   "name": "bf2-player-check",
   "version": "1.5.0",
-  "description": "Search BF2 players across GameSpy-replacement projects and check their stats via a Discord bot",
+  "description": "Search BF2 players across GameSpy-replacement providers and check their stats via a Discord bot",
   "main": "dist/index.js",
   "private": true,
   "engines": {

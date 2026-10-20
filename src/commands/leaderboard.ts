@@ -1,6 +1,6 @@
 import { Command, LeaderboardColumns, PlayerLeaderboardResponse } from './typing';
 import Constants from '../constants';
-import { LeaderboardCategory, LeaderboardScoreType, Project } from '../typing';
+import { LeaderboardCategory, LeaderboardScoreType, Provider } from '../typing';
 import {
     ApplicationCommandNumericOptionData,
     ApplicationCommandOptionType,
@@ -12,14 +12,14 @@ import axios from 'axios';
 import cmdLogger from './logger';
 import { createEmbed, longestStringLen } from './utility';
 
-const commonOptions: Record<'project' | 'page', ApplicationCommandNumericOptionData> = {
-    project: {
-        name: 'project',
-        description: 'GameSpy-replacement project the player is using',
+const commonOptions: Record<'provider' | 'page', ApplicationCommandNumericOptionData> = {
+    provider: {
+        name: 'provider',
+        description: 'GameSpy-replacement provider the player is using',
         type: ApplicationCommandOptionType.Integer,
         choices: [
-            { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
-            { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
+            { name: Constants.PROVIDER_LABELS[Provider.bf2hub], value: Provider.bf2hub },
+            { name: Constants.PROVIDER_LABELS[Provider.playbf2], value: Provider.playbf2 },
         ],
         required: true
     },
@@ -40,7 +40,7 @@ export const leaderboard: Command = {
             description: buildSubcommandDescription(LeaderboardCategory.score),
             type: ApplicationCommandOptionType.Subcommand,
             options: [
-                commonOptions.project,
+                commonOptions.provider,
                 {
                     name: Constants.LEADERBOARD_SORT_BY_OPTION_NAMES[LeaderboardCategory.score],
                     description: 'Score-type to sort leaderboard by',
@@ -61,7 +61,7 @@ export const leaderboard: Command = {
             description: buildSubcommandDescription(LeaderboardCategory.weapon),
             type: ApplicationCommandOptionType.Subcommand,
             options: [
-                commonOptions.project,
+                commonOptions.provider,
                 {
                     name: Constants.LEADERBOARD_SORT_BY_OPTION_NAMES[LeaderboardCategory.weapon],
                     description: 'Weapon category to sort leaderboard by',
@@ -78,7 +78,7 @@ export const leaderboard: Command = {
             description: buildSubcommandDescription(LeaderboardCategory.vehicle),
             type: ApplicationCommandOptionType.Subcommand,
             options: [
-                commonOptions.project,
+                commonOptions.provider,
                 {
                     name: Constants.LEADERBOARD_SORT_BY_OPTION_NAMES[LeaderboardCategory.vehicle],
                     description: 'Vehicle category to sort leaderboard by',
@@ -95,7 +95,7 @@ export const leaderboard: Command = {
             description: buildSubcommandDescription(LeaderboardCategory.kit),
             type: ApplicationCommandOptionType.Subcommand,
             options: [
-                commonOptions.project,
+                commonOptions.provider,
                 {
                     name: Constants.LEADERBOARD_SORT_BY_OPTION_NAMES[LeaderboardCategory.kit],
                     description: 'Kit to sort leaderboard by',
@@ -110,7 +110,7 @@ export const leaderboard: Command = {
     ],
     execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply();
-        const project: Project = interaction.options.getInteger('project', true);
+        const provider = interaction.options.getInteger('provider', true) as Provider;
         const categoryName = interaction.options.getSubcommand();
         const category = leaderboardCategoryFromName(categoryName);
         const sortBy = interaction.options.getInteger(Constants.LEADERBOARD_SORT_BY_OPTION_NAMES[category]) || 0;
@@ -119,7 +119,7 @@ export const leaderboard: Command = {
         // Score category uses names for different scores to sort by, not indexes => map numeric id to name
         const leaderboardId = category == LeaderboardCategory.score ? LeaderboardScoreType[sortBy] : sortBy;
         const url = new URL(
-            `/v2/leaderboards/${Project[project]}/${LeaderboardCategory[category]}/${leaderboardId}`,
+            `/v2/leaderboards/${Provider[provider]}/${LeaderboardCategory[category]}/${leaderboardId}`,
             'https://aspxstats.cetteup.com/'
         );
 
@@ -129,12 +129,12 @@ export const leaderboard: Command = {
 
         try {
             const resp = await axios.get(url.toString());
-            const embed = formatLeaderboardPage(category, sortBy, page, project, resp.data);
+            const embed = formatLeaderboardPage(category, sortBy, page, provider, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
-            cmdLogger.error('Failed to fetch leaderboard page', LeaderboardCategory[category], sortBy, page, Project[project], e?.response?.status, e?.code);
-            await interaction.editReply(`Sorry, failed to fetch ${LeaderboardCategory[category]}-based leaderboard from ${Constants.PROJECT_LABELS[project]}.`);
+            cmdLogger.error('Failed to fetch leaderboard page', LeaderboardCategory[category], sortBy, page, Provider[provider], e?.response?.status, e?.code);
+            await interaction.editReply(`Sorry, failed to fetch ${LeaderboardCategory[category]}-based leaderboard from ${Constants.PROVIDER_LABELS[provider]}.`);
         }
     }
 };
@@ -156,7 +156,7 @@ function leaderboardCategoryFromName(name: string): LeaderboardCategory {
     }
 }
 
-function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, project: Project, { size, entries }: PlayerLeaderboardResponse): EmbedBuilder {
+function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, page: number, provider: Provider, { size, entries }: PlayerLeaderboardResponse): EmbedBuilder {
     let sortedByField: EmbedField;
     switch (category) {
         case LeaderboardCategory.weapon:
@@ -242,6 +242,6 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         title: 'Player leaderboard',
         description: formatted,
         fields,
-        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: Constants.PROJECT_WEBSITES[project] }
+        author: { name: Constants.PROVIDER_LABELS[provider], iconURL: Constants.PROVIDER_ICONS[provider], url: Constants.PROVIDER_WEBSITES[provider] }
     });
 }

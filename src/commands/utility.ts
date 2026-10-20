@@ -1,18 +1,18 @@
 import axios from 'axios';
-import { Project } from '../typing';
+import { Provider } from '../typing';
 import Constants from '../constants';
 import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedData, EmbedFooterData } from 'discord.js';
 import Config from '../config';
 import { KitInfo, MapInfo, Player, PlayerSearchResponse, VehicleInfo, WeaponInfo } from './typing';
 
-export async function fetchPlayerNameOptionChoices(project: number | null, focusedValue: string): Promise<{ name: string, value: string }[]> {
+export async function fetchPlayerNameOptionChoices(provider: number | null, focusedValue: string): Promise<{ name: string, value: string }[]> {
     // Skip searches for if we have nothing to search for
-    if (project == null || focusedValue.trim().length == 0) {
+    if (provider == null || focusedValue.trim().length == 0) {
         return [];
     }
 
     const url = new URL(
-        `/v2/players/${Project[project]}/search-nick/${encodeURIComponent(focusedValue)}`,
+        `/v2/players/${Provider[provider]}/search-nick/${encodeURIComponent(focusedValue)}`,
         'https://aspxstats.cetteup.com/'
     );
 
@@ -34,9 +34,9 @@ export async function fetchPlayerNameOptionChoices(project: number | null, focus
         .map((choice) => ({ name: choice, value: choice }));
 }
 
-export async function resolvePlayerByName(project: number, name: string): Promise<Player> {
+export async function resolvePlayerByName(provider: number, name: string): Promise<Player> {
     const url = new URL(
-        `/v1/personas/bf2/${Project[project]}/by-name/${encodeURIComponent(name)}`,
+        `/v1/personas/bf2/${Provider[provider]}/by-name/${encodeURIComponent(name)}`,
         'https://r3solve-api.cetteup.com/'
     );
 
@@ -44,7 +44,7 @@ export async function resolvePlayerByName(project: number, name: string): Promis
     return {
         pid: resp.data.id,
         name: resp.data.name,
-        project: project
+        provider: provider
     };
 }
 
@@ -109,14 +109,14 @@ export function sortByKillsAndTimeAsc<T extends KitInfo | WeaponInfo | VehicleIn
     return a.time - b.time;
 }
 
-export function getAuthorUrl(player: Player): string {
-    switch (player.project) {
-        case Project.bf2hub:
+export function getAuthorURL(player: Player): string {
+    switch (player.provider) {
+        case Provider.bf2hub:
             return `https://www.bf2hub.com/stats/${player.pid}`;
-        case Project.playbf2:
+        case Provider.playbf2:
             return `http://bf2.tgamer.ru/stats/?pid=${player.pid}`;
         default:
-            return Constants.PROJECT_WEBSITES[player.project];
+            return Constants.PROVIDER_WEBSITES[player.provider];
     }
 }
 
@@ -143,9 +143,9 @@ export function createStatsEmbed({
     }
 
     const author: EmbedAuthorData = {
-        name: Constants.PROJECT_LABELS[player.project],
-        iconURL: Constants.PROJECT_ICONS[player.project],
-        url: getAuthorUrl(player)
+        name: Constants.PROVIDER_LABELS[player.provider],
+        iconURL: Constants.PROVIDER_ICONS[player.provider],
+        url: getAuthorURL(player)
     };
 
     const footer: EmbedFooterData = {

@@ -1,21 +1,21 @@
-import { LeaderboardCategory, LeaderboardScoreType, Project } from './typing';
+import { LeaderboardCategory, LeaderboardScoreType, Provider } from './typing';
 
 export default abstract class Constants {
-    public static readonly PROJECT_LABELS = {
-        [Project.bf2hub]: 'BF2Hub',
-        [Project.playbf2]: 'PlayBF2',
+    public static readonly PROVIDER_LABELS = {
+        [Provider.bf2hub]: 'BF2Hub',
+        [Provider.playbf2]: 'PlayBF2',
     };
-    public static readonly PROJECT_ICONS = {
-        [Project.bf2hub]: 'https://cdn.discordapp.com/icons/377985116758081541/525b59c06d45c14479657638cae8091a.webp',
-        [Project.playbf2]: 'https://cdn.discordapp.com/icons/376417565511122944/04585bf0c0c5dc0ff5d85fe205e5a9dd.webp',
+    public static readonly PROVIDER_ICONS = {
+        [Provider.bf2hub]: 'https://cdn.discordapp.com/icons/377985116758081541/525b59c06d45c14479657638cae8091a.webp',
+        [Provider.playbf2]: 'https://cdn.discordapp.com/icons/376417565511122944/04585bf0c0c5dc0ff5d85fe205e5a9dd.webp',
     };
-    public static PROJECT_WEBSITES = {
-        [Project.bf2hub]: 'https://www.bf2hub.com/',
-        [Project.playbf2]: 'https://playbf2.tilda.ws/en',
+    public static PROVIDER_WEBSITES = {
+        [Provider.bf2hub]: 'https://www.bf2hub.com/',
+        [Provider.playbf2]: 'https://playbf2.tilda.ws/en',
     };
-    public static readonly PROJECT_RESULT_LIMITS = {
-        [Project.bf2hub]: 20,
-        [Project.playbf2]: 50,
+    public static readonly PROVIDER_RESULT_LIMITS = {
+        [Provider.bf2hub]: 20,
+        [Provider.playbf2]: 50,
     };
 
     // Not a single player has stats for weapon 13 + could not find any reference

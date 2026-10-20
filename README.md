@@ -1,5 +1,5 @@
 # bf2-player-check
-Search BF2 players across GameSpy-replacement projects and check their stats
+Search BF2 players across GameSpy-replacement providers and check their stats
 
 Don't feel like hosting the bot yourself? You can also simply [add it to Discord](https://discord.com/api/oauth2/authorize?client_id=920284644958699530&permissions=0&scope=bot%20applications.commands).
 
@@ -11,10 +11,10 @@ Show a summary of a player's overall stats (time played, k/d ratio, accuracy etc
 
 #### Options
 
-| Name    | Description                                  | Required | Note                                 |
-|---------|----------------------------------------------|----------|--------------------------------------|
-| project | BF2 revive project to pull stats from        | yes      | possible values: `BF2Hub`, `PlayBF2` |
-| name    | Name of the player (without clan tag/prefix) | yes      |                                      |
+| Name     | Description                                  | Required | Note                                 |
+|----------|----------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider to pull stats from       | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
 ![](https://user-images.githubusercontent.com/17167062/178346929-b267e90e-60b3-48a1-82f3-9ab990b0fc55.png)
@@ -25,10 +25,10 @@ Find players who's nickname (partially) matches a given name.
 
 #### Options
 
-| Name    | Description                                            | Required | Note                                 |
-|---------|--------------------------------------------------------|----------|--------------------------------------|
-| project | BF2 revive project to search                           | yes      | possible values: `BF2Hub`, `PlayBF2` |
-| name    | (Partial) Name of the player (without clan tag/prefix) | yes      |                                      |
+| Name     | Description                                            | Required | Note                                 |
+|----------|--------------------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider to search                          | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | (Partial) Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
 
@@ -41,10 +41,10 @@ Show a player's per-kit stats (time played, k/d ratio).
 
 #### Options
 
-| Name    | Description                                  | Required | Note                                 |
-|---------|----------------------------------------------|----------|--------------------------------------|
-| project | BF2 revive project to pull stats from        | yes      | possible values: `BF2Hub`, `PlayBF2` |
-| name    | Name of the player (without clan tag/prefix) | yes      |                                      |
+| Name     | Description                                  | Required | Note                                 |
+|----------|----------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider to pull stats from       | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
 
@@ -56,10 +56,10 @@ Show a player's per-weapon stats (time played, k/d ratio, accuracy).
 
 #### Options
 
-| Name    | Description                                  | Required | Note                                 |
-|---------|----------------------------------------------|----------|--------------------------------------|
-| project | BF2 revive project to pull stats from        | yes      | possible values: `BF2Hub`, `PlayBF2` |
-| name    | Name of the player (without clan tag/prefix) | yes      |                                      |
+| Name     | Description                                  | Required | Note                                 |
+|----------|----------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider to pull stats from       | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
 
@@ -71,10 +71,10 @@ Show a player's per-vehicle stats (time player, k/d ratio).
 
 #### Options
 
-| Name    | Description                                  | Required | Note                                 |
-|---------|----------------------------------------------|----------|--------------------------------------|
-| project | BF2 revive project to pull stats from        | yes      | possible values: `BF2Hub`, `PlayBF2` |
-| name    | Name of the player (without clan tag/prefix) | yes      |                                      |
+| Name     | Description                                  | Required | Note                                 |
+|----------|----------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider to pull stats from       | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
 
@@ -86,10 +86,10 @@ Show a player's per-map stats (time played, win rate).
 
 #### Options
 
-| Name    | Description                                  | Required | Note                                 |
-|---------|----------------------------------------------|----------|--------------------------------------|
-| project | BF2 revive project to pull stats from        | yes      | possible values: `BF2Hub`, `PlayBF2` |
-| name    | Name of the player (without clan tag/prefix) | yes      |                                      |
+| Name     | Description                                  | Required | Note                                 |
+|----------|----------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider to pull stats from       | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
 
@@ -101,11 +101,11 @@ Show a page of the player leaderboard sorted by score.
 
 #### Options
 
-| Name       | Description                           | Required | Note                                                                         |
-|------------|---------------------------------------|----------|------------------------------------------------------------------------------|
-| project    | BF2 revive project to pull stats from | yes      | possible values: `BF2Hub`, `PlayBF2`                                         |
-| score-type | Type of score to sort leaderboard by  | no       | possible values: `Overall`, `Rising star`, `Commander`, `Teamwork`, `Combat` |
-| page       | Page of the leaderboard to fetch      | no       | minimum value: 1                                                             |
+| Name       | Description                            | Required | Note                                                                         |
+|------------|----------------------------------------|----------|------------------------------------------------------------------------------|
+| provider   | BF2 revive provider to pull stats from | yes      | possible values: `BF2Hub`, `PlayBF2`                                         |
+| score-type | Type of score to sort leaderboard by   | no       | possible values: `Overall`, `Rising star`, `Commander`, `Teamwork`, `Combat` |
+| page       | Page of the leaderboard to fetch       | no       | minimum value: 1                                                             |
 
 #### Example
 
@@ -119,7 +119,7 @@ Show a page of the player leaderboard sorted by kills in a given weapon category
 
 | Name            | Description                            | Required | Note                                                                                                                                                                                                         |
 |-----------------|----------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| project         | BF2 revive project to pull stats from  | yes      | possible values: `BF2Hub`, `PlayBF2`                                                                                                                                                                         |
+| provider        | BF2 revive provider to pull stats from | yes      | possible values: `BF2Hub`, `PlayBF2`                                                                                                                                                                         |
 | weapon-category | Weapon category to sort leaderboard by | no       | possible values: `Assault-Rifle`, `Grenade-Launcher`, `Carbine`, `Light Machine Gun`, `Sniper Rifle`, `Pistol`, `Anti-Tank`, `Sub-Machine Gun`, `Shotgun`, `Knife`, `Defibrillator`, `Explosives`, `Grenade` |
 | page            | Page of the leaderboard to fetch       | no       | minimum value: 1                                                                                                                                                                                             |
 
@@ -135,7 +135,7 @@ Show a page of the player leaderboard sorted by kills in a given vehicle categor
 
 | Name             | Description                             | Required | Note                                                                                  |
 |------------------|-----------------------------------------|----------|---------------------------------------------------------------------------------------|
-| project          | BF2 revive project to pull stats from   | yes      | possible values: `BF2Hub`, `PlayBF2`                                                  |
+| provider         | BF2 revive provider to pull stats from  | yes      | possible values: `BF2Hub`, `PlayBF2`                                                  |
 | vehicle-category | Vehicle category to sort leaderboard by | no       | possible values: `Armor`, `Jet`, `Anti-Air`, `Helicopter`, `Transport`, `Ground-Def.` |
 | page             | Page of the leaderboard to fetch        | no       | minimum value: 1                                                                      |
 
@@ -149,11 +149,11 @@ Show a page of the player leaderboard sorted by kills with a given kit.
 
 #### Options
 
-| Name    | Description                           | Required | Note                                                                                          |
-|---------|---------------------------------------|----------|-----------------------------------------------------------------------------------------------|
-| project | BF2 revive project to pull stats from | yes      | possible values: `BF2Hub`, `PlayBF2`                                                          |
-| kit     | Kit to sort leaderboard by            | no       | possible values: `Anti-Tank`, `Assault`, `Engineer`, `Medic`, `Spec-Ops`, `Support`, `Sniper` |
-| page    | Page of the leaderboard to fetch      | no       | minimum value: 1                                                                              |
+| Name     | Description                            | Required | Note                                                                                          |
+|----------|----------------------------------------|----------|-----------------------------------------------------------------------------------------------|
+| provider | BF2 revive provider to pull stats from | yes      | possible values: `BF2Hub`, `PlayBF2`                                                          |
+| kit      | Kit to sort leaderboard by             | no       | possible values: `Anti-Tank`, `Assault`, `Engineer`, `Medic`, `Spec-Ops`, `Support`, `Sniper` |
+| page     | Page of the leaderboard to fetch       | no       | minimum value: 1                                                                              |
 
 #### Example
 
