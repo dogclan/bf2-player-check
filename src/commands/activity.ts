@@ -34,7 +34,6 @@ export const activity: Command = {
             choices: [
                 { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
                 { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
-                { name: Constants.PROJECT_LABELS[Project.b2bf2], value: Project.b2bf2 }
             ],
             required: true
         },
