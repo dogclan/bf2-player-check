@@ -1,5 +1,5 @@
 import { AutocompleteInteraction, ChatInputApplicationCommandData, ChatInputCommandInteraction } from 'discord.js';
-import { Project } from '../typing';
+import { Provider } from '../typing';
 
 export interface Command extends ChatInputApplicationCommandData {
     execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
@@ -25,7 +25,7 @@ export type EnrichedPlayerSearchResult = PlayerSearchResult & {
 export type Player = {
     pid: number
     name: string
-    project: Project
+    provider: Provider
 }
 
 export type PlayerInfoResponse = {

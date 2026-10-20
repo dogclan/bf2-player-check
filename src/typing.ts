@@ -1,4 +1,4 @@
-export enum Project {
+export enum Provider {
     bf2hub = 0,
     playbf2,
 }

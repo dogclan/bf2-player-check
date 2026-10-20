@@ -9,14 +9,14 @@ import {
     escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
-import { Project } from '../typing';
+import { Provider } from '../typing';
 import axios from 'axios';
 import {
     createEmbed,
     fetchPlayerNameOptionChoices,
     fitStringToLength,
     formatTimePlayed,
-    getAuthorUrl,
+    getAuthorURL,
     longestStringLen,
     resolvePlayerByName
 } from './utility';
@@ -28,12 +28,12 @@ export const activity: Command = {
     description: 'Get a player\'s recent online activity',
     options: [
         {
-            name: 'project',
-            description: 'GameSpy-replacement project the player is using',
+            name: 'provider',
+            description: 'GameSpy-replacement provider the player is using',
             type: ApplicationCommandOptionType.Integer,
             choices: [
-                { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
-                { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
+                { name: Constants.PROVIDER_LABELS[Provider.bf2hub], value: Provider.bf2hub },
+                { name: Constants.PROVIDER_LABELS[Provider.playbf2], value: Provider.playbf2 },
             ],
             required: true
         },
@@ -48,19 +48,19 @@ export const activity: Command = {
     execute: async (interaction: ChatInputCommandInteraction) => {
         // Two request might take a moment => defer reply
         await interaction.deferReply();
-        const project = interaction.options.getInteger('project', true);
+        const provider = interaction.options.getInteger('provider', true) as Provider;
         const name = interaction.options.getString('name', true);
 
         let player: Player;
         try {
-            player = await resolvePlayerByName(project, name);
+            player = await resolvePlayerByName(provider, name);
         } catch (e: any) {
             if (e.isAxiosError && e?.response?.status == 404) {
-                await interaction.editReply(`Sorry, could not find a BF2 player called "${name}" on ${Constants.PROJECT_LABELS[project as Project]}.`);
+                await interaction.editReply(`Sorry, could not find a BF2 player called "${name}" on ${Constants.PROVIDER_LABELS[provider]}.`);
                 return;
             } else {
-                cmdLogger.error('Persona resolution request failed', name, Project[project], e?.response?.status, e?.code);
-                await interaction.editReply(`Sorry, failed to resolve pid for ${name} on ${Constants.PROJECT_LABELS[project as Project]}.`);
+                cmdLogger.error('Persona resolution request failed', name, Provider[provider], e?.response?.status, e?.code);
+                await interaction.editReply(`Sorry, failed to resolve pid for ${name} on ${Constants.PROVIDER_LABELS[provider]}.`);
                 return;
             }
         }
@@ -78,14 +78,14 @@ export const activity: Command = {
             const embed = formatActivity(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         } catch (e: any) {
-            cmdLogger.error('Failed to fetch sessions for', player.name, Project[player.project], e?.response?.status, e?.code);
+            cmdLogger.error('Failed to fetch sessions for', player.name, Provider[player.provider], e?.response?.status, e?.code);
             await interaction.editReply(`Sorry, failed to fetch recent activity for ${escapeMarkdown(player.name)}.`);
         }
     },
     autocomplete: async (interaction: AutocompleteInteraction) => {
-        const project = interaction.options.getInteger('project');
+        const provider = interaction.options.getInteger('provider') as Provider | null;
         const focusedValue = interaction.options.getFocused();
-        const choices = await fetchPlayerNameOptionChoices(project, focusedValue);
+        const choices = await fetchPlayerNameOptionChoices(provider, focusedValue);
         await interaction.respond(choices);
     }
 };
@@ -205,9 +205,9 @@ function formatActivity(player: Player, { sessions }: SessionResponse): EmbedBui
     ];
 
     const author: EmbedAuthorData = {
-        name: Constants.PROJECT_LABELS[player.project],
-        iconURL: Constants.PROJECT_ICONS[player.project],
-        url: getAuthorUrl(player)
+        name: Constants.PROVIDER_LABELS[player.provider],
+        iconURL: Constants.PROVIDER_ICONS[player.provider],
+        url: getAuthorURL(player)
     };
 
     return createEmbed({

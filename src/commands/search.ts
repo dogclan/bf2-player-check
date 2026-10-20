@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import Constants from '../constants';
-import { Project } from '../typing';
+import { Provider } from '../typing';
 import {
     BflistServer,
     Command,
@@ -17,12 +17,12 @@ export const search: Command = {
     description: 'Search for a player by their name',
     options: [
         {
-            name: 'project',
-            description: 'GameSpy-replacement project to search',
+            name: 'provider',
+            description: 'GameSpy-replacement provider to search',
             type: ApplicationCommandOptionType.Integer,
             choices: [
-                { name: Constants.PROJECT_LABELS[Project.bf2hub], value: Project.bf2hub },
-                { name: Constants.PROJECT_LABELS[Project.playbf2], value: Project.playbf2 },
+                { name: Constants.PROVIDER_LABELS[Provider.bf2hub], value: Provider.bf2hub },
+                { name: Constants.PROVIDER_LABELS[Provider.playbf2], value: Provider.playbf2 },
             ],
             required: true
         },
@@ -35,11 +35,11 @@ export const search: Command = {
     ],
     execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply();
-        const project = interaction.options.getInteger('project', true);
+        const provider = interaction.options.getInteger('provider', true) as Provider;
         const name = interaction.options.getString('name', true);
 
         const url = new URL(
-            `/v2/players/${Project[project]}/search-nick/${encodeURIComponent(name)}`,
+            `/v2/players/${Provider[provider]}/search-nick/${encodeURIComponent(name)}`,
             'https://aspxstats.cetteup.com/'
         );
 
@@ -51,8 +51,8 @@ export const search: Command = {
             data = resp.data;
         }
         catch (e: any) {
-            cmdLogger.error('Player search request failed', name, Project[project], e?.response?.status, e?.code);
-            await interaction.editReply(`Sorry, search for "${name}" on ${Constants.PROJECT_LABELS[project as Project]} failed.`);
+            cmdLogger.error('Player search request failed', name, Provider[provider], e?.response?.status, e?.code);
+            await interaction.editReply(`Sorry, search for "${name}" on ${Constants.PROVIDER_LABELS[provider]} failed.`);
             return;
         }
 
@@ -95,12 +95,12 @@ export const search: Command = {
             enrichedResults.push(enrichedResult);
         }
 
-        const embed = formatSearchResultList(name, project, enrichedResults);
+        const embed = formatSearchResultList(name, provider, enrichedResults);
         await interaction.editReply({ embeds: [embed] });
     }
 };
 
-function formatSearchResultList(name: string, project: Project, results: EnrichedPlayerSearchResult[]): EmbedBuilder {
+function formatSearchResultList(name: string, provider: Provider, results: EnrichedPlayerSearchResult[]): EmbedBuilder {
     let formatted: string;
     const fields: EmbedField[] = [];
     results = results
@@ -169,7 +169,7 @@ function formatSearchResultList(name: string, project: Project, results: Enriche
             inline: true
         }, {
             name: 'Results max.',
-            value: Constants.PROJECT_RESULT_LIMITS[project].toString(),
+            value: Constants.PROVIDER_RESULT_LIMITS[provider].toString(),
             inline: true
         });
     }
@@ -181,6 +181,6 @@ function formatSearchResultList(name: string, project: Project, results: Enriche
         title: `Search results for "${name}"`,
         description: formatted,
         fields,
-        author: { name: Constants.PROJECT_LABELS[project], iconURL: Constants.PROJECT_ICONS[project], url: Constants.PROJECT_WEBSITES[project] }
+        author: { name: Constants.PROVIDER_LABELS[provider], iconURL: Constants.PROVIDER_ICONS[provider], url: Constants.PROVIDER_WEBSITES[provider] }
     });
 }
