@@ -12,7 +12,7 @@ export async function fetchPlayerNameOptionChoices(project: number | null, focus
     }
 
     const url = new URL(
-        `v2/players/${Project[project]}/search-nick/${encodeURIComponent(focusedValue)}`,
+        `/v2/players/${Project[project]}/search-nick/${encodeURIComponent(focusedValue)}`,
         'https://aspxstats.cetteup.com/'
     );
 
@@ -35,7 +35,12 @@ export async function fetchPlayerNameOptionChoices(project: number | null, focus
 }
 
 export async function resolvePlayerByName(project: number, name: string): Promise<Player> {
-    const resp = await axios.get(`https://r3solve-api.cetteup.com/v1/personas/bf2/${Project[project]}/by-name/${encodeURIComponent(name)}`);
+    const url = new URL(
+        `/v1/personas/bf2/${Project[project]}/by-name/${encodeURIComponent(name)}`,
+        'https://r3solve-api.cetteup.com/'
+    );
+
+    const resp = await axios.get(url.toString());
     return {
         pid: resp.data.id,
         name: resp.data.name,

@@ -40,7 +40,7 @@ export const search: Command = {
         const name = interaction.options.getString('name', true);
 
         const url = new URL(
-            `v2/players/${Project[project]}/search-nick/${encodeURIComponent(name)}`,
+            `/v2/players/${Project[project]}/search-nick/${encodeURIComponent(name)}`,
             'https://aspxstats.cetteup.com/'
         );
 
@@ -61,12 +61,15 @@ export const search: Command = {
         let page = 1;
         let hasNextPage: boolean;
         do {
+            const url = new URL(
+                `/bf2/v1/servers/${page}`,
+                'https://api.bflist.io/'
+            );
+
+            url.searchParams.set('perPage', '100');
+
             try {
-                const resp = await axios.get(`https://api.bflist.io/bf2/v1/servers/${page}`, {
-                    params: {
-                        perPage: 100
-                    }
-                });
+                const resp = await axios.get(url.toString());
                 servers.push(...resp.data);
                 hasNextPage = page < Number(resp.headers?.['x-total-pages'] ?? 1);
                 page++;
