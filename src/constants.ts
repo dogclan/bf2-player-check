@@ -13,10 +13,6 @@ export default abstract class Constants {
         [Provider.bf2hub]: 'https://www.bf2hub.com/',
         [Provider.playbf2]: 'https://playbf2.tilda.ws/en',
     };
-    public static readonly PROVIDER_RESULT_LIMITS = {
-        [Provider.bf2hub]: 20,
-        [Provider.playbf2]: 50,
-    };
 
     // Not a single player has stats for weapon 13 + could not find any reference
     public static readonly INVALID_WEAPON_IDS = [13];
@@ -29,7 +25,7 @@ export default abstract class Constants {
     public static readonly LEADERBOARD_PER_PAGE = 20;
 
     public static readonly DISCORD_CHOICES_MAX_LENGTH = 25;
-    
+
     public static readonly WEAPON_CATEGORY_LABELS = [
         'Assault-Rifle',
         'Grenade-Launcher',

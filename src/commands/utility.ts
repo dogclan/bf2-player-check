@@ -3,7 +3,7 @@ import { Provider } from '../typing';
 import Constants from '../constants';
 import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedData, EmbedFooterData } from 'discord.js';
 import Config from '../config';
-import { KitInfo, MapInfo, Player, PlayerSearchResponse, VehicleInfo, WeaponInfo } from './typing';
+import { KitInfo, MapInfo, Player, RegistryPlayersResponse, VehicleInfo, WeaponInfo } from './typing';
 
 export async function fetchPlayerNameOptionChoices(provider: number | null, focusedValue: string): Promise<{ name: string, value: string }[]> {
     // Skip searches for if we have nothing to search for
@@ -11,27 +11,25 @@ export async function fetchPlayerNameOptionChoices(provider: number | null, focu
         return [];
     }
 
+    // Use registry API instead of ASPX search as search results may contain players only tracked by a provider
+    // (e.g. PlayBF2 tracking stats for a BF2Hub player)
+    // We only want to expose "native" players, as the r3solve API will only resolve those
+    // Using search + r3solve might result in a nick being suggested as an option, but then failing to resolve it to a player id (pid)
     const url = new URL(
-        `/v2/players/${Provider[provider]}/search-nick/${encodeURIComponent(focusedValue)}`,
-        'https://aspxstats.cetteup.com/'
+        '/v1/players',
+        'https://api.registry.bf2.co/'
     );
 
-    url.searchParams.set('where', 'a');
+    url.searchParams.set('nick', focusedValue + '*');
+    url.searchParams.set('provider', Provider[provider]);
 
-    const resp = await axios.get(url.toString());
-    const data: PlayerSearchResponse = resp.data;
-    return data.results
-        // As always, PlayBF2 returns names with tags, so we need to remove any existing tags
-        .map((result) => result.nick.split(' ').pop() ?? result.nick)
-        // We may have received players whose tag's match but name does not, so filter again locally (ignoring case)
-        .filter((choice) => choice.toLowerCase().includes(focusedValue.toLowerCase()))
+    const resp = await axios.get<RegistryPlayersResponse>(url.toString());
+    return resp.data.players
         // Avoid causing errors with long names
-        .filter((choice) => choice.length <= Constants.DISCORD_CHOICES_MAX_LENGTH)
-        // PlayBF2 may return duplicates, if they added stats for the BF2Hub pid before adding a "real" PlayBF2 account
-        .filter((choice, index, choices) => choices.indexOf(choice) == index)
+        .filter((player) => player.nick.length <= Constants.DISCORD_CHOICES_MAX_LENGTH)
         // Avoid causing errors with too many options
         .slice(0, Constants.DISCORD_CHOICES_MAX_LENGTH)
-        .map((choice) => ({ name: choice, value: choice }));
+        .map((player) => ({ name: player.nick, value: player.nick }));
 }
 
 export async function resolvePlayerByName(provider: number, name: string): Promise<Player> {
