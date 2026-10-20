@@ -188,7 +188,6 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         formatted = 'There seem to be no more players on this leaderboard.';
     }
     else {
-        // Leave a few spaces between columns
         const padding = 3;
         const columns: LeaderboardColumns = {
             position: {
@@ -210,11 +209,12 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
 
         // Add table headers
         let totalWidth = 0;
-        for (const key in columns) {
+        const keys = Object.keys(columns) as (keyof LeaderboardColumns)[];
+        for (const [index, key] of keys.entries()) {
             const column = columns[key];
 
-            // Add a few spaces of padding between tables
-            column.width = key == 'currentServer' ? column.width : column.width + padding;
+            // Add a few spaces of padding after columns, except for the last one
+            column.width = index == keys.length - 1 ? column.width : column.width + padding;
 
             formatted += column.heading.padEnd(column.width, ' ');
             totalWidth += column.width;

@@ -96,6 +96,7 @@ function formatVehicleStats(player: Player, { data }: PlayerInfoResponse): Embed
         return kd.toFixed(2);
     });
 
+    const padding = 4;
     const columns: VehicleStatsColumns = {
         category: {
             width: longestStringLen(Constants.VEHICLE_CATEGORY_LABELS, 10),
@@ -116,11 +117,12 @@ function formatVehicleStats(player: Player, { data }: PlayerInfoResponse): Embed
 
     // Add table headers
     let totalWidth = 0;
-    for (const key in columns) {
+    const keys = Object.keys(columns) as (keyof VehicleStatsColumns)[];
+    for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
-        // Add a few spaces of padding between tables
-        column.width = key == 'kd' ? column.width : column.width + 4;
+        // Add a few spaces of padding after columns, except for the last one
+        column.width = index == keys.length - 1 ? column.width : column.width + padding;
 
         formatted += column.heading.padEnd(column.width, ' ');
         totalWidth += column.width;

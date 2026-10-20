@@ -87,6 +87,7 @@ function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBui
         return wl.toFixed(2);
     });
 
+    const padding = 4;
     const columns: ArmyStatsColumns = {
         army: {
             width: longestStringLen(Constants.ARMY_LABELS, 14),
@@ -107,11 +108,12 @@ function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBui
 
     // Add table headers
     let totalWidth = 0;
-    for (const key in columns) {
+    const keys = Object.keys(columns) as (keyof ArmyStatsColumns)[];
+    for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
-        // Add a few spaces of padding between tables
-        column.width = key == 'wl' ? column.width : column.width + 4;
+        // Add a few spaces of padding after columns, except for the last one
+        column.width = index == keys.length - 1 ? column.width : column.width + padding;
 
         formatted += column.heading.padEnd(column.width, ' ');
         totalWidth += column.width;

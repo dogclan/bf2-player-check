@@ -135,7 +135,6 @@ function formatActivity(player: Player, { sessions }: SessionResponse): EmbedBui
         .filter((r) => r.duration > 0 || !r.ended)
         .slice(0, 15);
 
-    // Add a few spaces of padding between tables
     const padding = 3;
     const columns: ActivityColumns = {
         server: {
@@ -157,10 +156,12 @@ function formatActivity(player: Player, { sessions }: SessionResponse): EmbedBui
 
     // Add table headers
     let totalWidth = 0;
-    for (const key in columns) {
+    const keys = Object.keys(columns) as (keyof ActivityColumns)[];
+    for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
-        column.width = key == 'when' ? column.width : column.width + padding;
+        // Add a few spaces of padding after columns, except for the last one
+        column.width = index == keys.length - 1 ? column.width : column.width + padding;
 
         formatted += column.heading.padEnd(column.width, ' ');
         totalWidth += column.width;

@@ -118,7 +118,6 @@ function formatSearchResultList(name: string, provider: Provider, players: Enric
             return fitStringToLength(serverName, 18);
         });
 
-        // Leave a few spaces between columns
         const padding = 3;
         const columns: SearchColumns = {
             name: {
@@ -140,11 +139,12 @@ function formatSearchResultList(name: string, provider: Provider, players: Enric
 
         // Add table headers
         let totalWidth = 0;
-        for (const key in columns) {
+        const keys = Object.keys(columns) as (keyof SearchColumns)[];
+        for (const [index, key] of keys.entries()) {
             const column = columns[key];
 
-            // Add a few spaces of padding between tables
-            column.width = key == 'server' ? column.width : column.width + padding;
+            // Add a few spaces of padding after columns, except for the last one
+            column.width = index == keys.length - 1 ? column.width : column.width + padding;
 
             formatted += column.heading.padEnd(column.width, ' ');
             totalWidth += column.width;
