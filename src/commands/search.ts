@@ -144,7 +144,7 @@ function formatSearchResultList(name: string, provider: Provider, players: Enric
             const column = columns[key];
 
             // Add a few spaces of padding between tables
-            column.width = key == 'currentServer' ? column.width : column.width + padding;
+            column.width = key == 'server' ? column.width : column.width + padding;
 
             formatted += column.heading.padEnd(column.width, ' ');
             totalWidth += column.width;
