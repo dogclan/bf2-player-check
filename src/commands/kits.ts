@@ -50,7 +50,7 @@ export const kits: Command = {
             }
             else {
                 cmdLogger.error('Persona resolution request failed', name, Provider[provider], e?.response?.status, e?.code);
-                await interaction.editReply(`Sorry, failed to resolve pid for ${name} on ${Constants.PROVIDER_LABELS[provider]}.`);
+                await interaction.editReply(`Sorry, failed to resolve player id for ${name} on ${Constants.PROVIDER_LABELS[provider]}.`);
                 return;
             }
         }
