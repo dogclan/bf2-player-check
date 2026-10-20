@@ -6,22 +6,6 @@ export interface Command extends ChatInputApplicationCommandData {
     autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }
 
-export type PlayerSearchResponse = {
-    asof: number
-    results: PlayerSearchResult[]
-}
-
-export type PlayerSearchResult = {
-    n: number
-    pid: number
-    nick: string
-    score: number
-}
-
-export type EnrichedPlayerSearchResult = PlayerSearchResult & {
-    currentServer?: string
-}
-
 export type Player = {
     pid: number
     name: string
@@ -140,7 +124,7 @@ export type Column = {
 export type SearchColumns = Columns & {
     name: Column
     pid: Column
-    currentServer: Column
+    server: Column
 }
 
 export type WeaponStatsColumns = Columns & {
@@ -180,6 +164,22 @@ export type ActivityColumns = Columns & {
     when: Column
 }
 
+export type RegistryPlayersResponse = {
+    players: RegistryPlayer[]
+}
+
+export type RegistryPlayer = {
+    id: string
+    pid: number
+    nick: string
+    provider: string
+    profileUrl: string
+}
+
+export type EnrichedRegistryPlayer = RegistryPlayer & {
+    server?: string
+}
+
 export type BflistServer = {
     name: string
     players: BflistPlayer[]
@@ -188,4 +188,5 @@ export type BflistServer = {
 export type BflistPlayer = {
     pid: number
     name: string
+    tag: string
 }

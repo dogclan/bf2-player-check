@@ -5,8 +5,8 @@ import { Provider } from '../typing';
 import {
     BflistServer,
     Command,
-    EnrichedPlayerSearchResult,
-    PlayerSearchResponse,
+    EnrichedRegistryPlayer,
+    RegistryPlayersResponse,
     SearchColumns
 } from './typing';
 import cmdLogger from './logger';
@@ -39,15 +39,16 @@ export const search: Command = {
         const name = interaction.options.getString('name', true);
 
         const url = new URL(
-            `/v2/players/${Provider[provider]}/search-nick/${encodeURIComponent(name)}`,
-            'https://aspxstats.cetteup.com/'
+            '/v1/players',
+            'https://api.registry.bf2.co/'
         );
 
-        url.searchParams.set('where', 'a');
+        url.searchParams.set('nick', name + '*');
+        url.searchParams.set('provider', Provider[provider]);
 
-        let data: PlayerSearchResponse;
+        let data: RegistryPlayersResponse;
         try {
-            const resp = await axios.get(url.toString());
+            const resp = await axios.get<RegistryPlayersResponse>(url.toString());
             data = resp.data;
         }
         catch (e: any) {
@@ -79,38 +80,41 @@ export const search: Command = {
             }
         } while (hasNextPage);
 
-        const enrichedResults: EnrichedPlayerSearchResult[] = [];
-        for (const result of data.results) {
+        const players: EnrichedRegistryPlayer[] = [];
+        for (const player of data.players) {
             const server = servers.find((s) => s.players.some((p) => {
-                // Make sure pid matches
-                // Comparing name leads to issues in rare cases where long player names are cut off
-                return p.pid == result.pid;
+                if (p.pid != player.pid) {
+                    return false;
+                }
+
+                // Comparing names directly leads to false negatives when long player names are cut off due to long tags
+                if (player.nick.length + p.tag.length > 22) {
+                    return p.name.toLowerCase() == player.nick.slice(0, 22 - Math.min(p.tag.length, 6)).toLowerCase();
+                }
+
+                return p.name.toLowerCase() == player.nick.toLowerCase();
             }));
 
-            const enrichedResult: EnrichedPlayerSearchResult = result;
+            const enriched: EnrichedRegistryPlayer = player;
             if (server) {
-                enrichedResult.currentServer = server.name;
+                enriched.server = server.name;
             }
 
-            enrichedResults.push(enrichedResult);
+            players.push(enriched);
         }
 
-        const embed = formatSearchResultList(name, provider, enrichedResults);
+        const embed = formatSearchResultList(name, provider, players);
         await interaction.editReply({ embeds: [embed] });
     }
 };
 
-function formatSearchResultList(name: string, provider: Provider, results: EnrichedPlayerSearchResult[]): EmbedBuilder {
+function formatSearchResultList(name: string, provider: Provider, players: EnrichedRegistryPlayer[]): EmbedBuilder {
     let formatted: string;
     const fields: EmbedField[] = [];
-    results = results
-        // Remove clan tags from names
-        .map((r) => ({ ...r, 'nick': r.nick.trim().split(' ').pop() || r.nick }))
-        // Filter out players who's clan tag matches but actual name does match the given name
-        .filter((r) => r.nick.toLowerCase().includes(name.toLowerCase()));
-    if (results.length > 0) {
-        const serverNames = results.map((r) => {
-            const serverName = r.currentServer?.trim() || '';
+    players = players.slice(0, 20); // Limit to 20 results
+    if (players.length > 0) {
+        const serverNames = players.map((r) => {
+            const serverName = r.server?.trim() || '';
             return fitStringToLength(serverName, 18);
         });
 
@@ -118,14 +122,14 @@ function formatSearchResultList(name: string, provider: Provider, results: Enric
         const padding = 3;
         const columns: SearchColumns = {
             name: {
-                width: longestStringLen(results.map((r) => r.nick), 10),
+                width: longestStringLen(players.map((r) => r.nick), 10),
                 heading: 'Name'
             },
             pid: {
-                width: longestStringLen(results.map((r) => r.pid.toString()), 6),
+                width: longestStringLen(players.map((r) => r.pid.toString()), 6),
                 heading: 'PID'
             },
-            currentServer: {
+            server: {
                 width: longestStringLen(serverNames, 13),
                 heading: 'Playing on'
             }
@@ -140,7 +144,7 @@ function formatSearchResultList(name: string, provider: Provider, results: Enric
             const column = columns[key];
 
             // Add a few spaces of padding between tables
-            column.width = key == 'currentServer' ? column.width : column.width + padding;
+            column.width = key == 'server' ? column.width : column.width + padding;
 
             formatted += column.heading.padEnd(column.width, ' ');
             totalWidth += column.width;
@@ -151,13 +155,13 @@ function formatSearchResultList(name: string, provider: Provider, results: Enric
         // Add separator
         formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-        for (const [index, result] of results.entries()) {
+        for (const [index, result] of players.entries()) {
             const serverName = serverNames[index];
 
             formatted += `${result.nick.padEnd(columns.name.width, ' ') }`;
             // Align pid to the right for better readability
             formatted += `${result.pid.toString().padStart(columns.pid.width - padding, ' ') }${''.padEnd(padding, ' ')}`;
-            formatted += `${serverName.padEnd(columns.currentServer.width, ' ') }\n`;
+            formatted += `${serverName.padEnd(columns.server.width, ' ') }\n`;
         }
 
         // End markdown embed
@@ -165,11 +169,11 @@ function formatSearchResultList(name: string, provider: Provider, results: Enric
 
         fields.push({
             name: 'Results',
-            value: results.length.toString(),
+            value: players.length.toString(),
             inline: true
         }, {
             name: 'Results max.',
-            value: Constants.PROVIDER_RESULT_LIMITS[provider].toString(),
+            value: '20',
             inline: true
         });
     }
