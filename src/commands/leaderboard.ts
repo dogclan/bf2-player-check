@@ -178,6 +178,7 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
         { name: '\u200B', value: '\u200B', inline: true },
         { name: 'Page', value: `${page}`, inline: true },
         { name: 'Total pages', value: `${Math.ceil(size / Constants.LEADERBOARD_PER_PAGE)}`, inline: true },
+        { name: '\u200B', value: '\u200B', inline: true },
     ];
 
     // Remove clan tags from names
@@ -234,8 +235,6 @@ function formatLeaderboardPage(category: LeaderboardCategory, sortBy: number, pa
 
         // End markdown embed
         formatted += '```';
-
-        fields.push();
     }
 
     return createEmbed({
