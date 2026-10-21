@@ -17,7 +17,7 @@ Show a summary of a player's overall stats (time played, k/d ratio, accuracy etc
 | name     | Name of the player (without clan tag/prefix) | yes      |                                      |
 
 #### Example
-![](https://user-images.githubusercontent.com/17167062/178346929-b267e90e-60b3-48a1-82f3-9ab990b0fc55.png)
+<img width="433" height="259" src="docs/img/command-example-summary.png" />
 
 ### /search
 
@@ -32,7 +32,7 @@ Find players who's nickname (partially) matches a given name.
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/178347468-c9580836-be56-43f2-80e2-81dff9af2c0f.png)
+<img width="377" height="237" src="docs/img/command-example-search.png" />
 
 
 ### /kits
@@ -48,7 +48,7 @@ Show a player's per-kit stats (time played, k/d ratio).
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/178348040-a3035dba-813d-4630-a70c-ebd5ed34b484.png)
+<img width="269" height="307" src="docs/img/command-example-kits.png" />
 
 ### /weapons
 
@@ -63,7 +63,7 @@ Show a player's per-weapon stats (time played, k/d ratio, accuracy).
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/178348307-26aa4570-8d60-43a8-9b0b-4c998740b2c0.png)
+<img width="388" height="404" src="docs/img/command-example-weapons.png" />
 
 ### /vehicles
 
@@ -78,7 +78,7 @@ Show a player's per-vehicle stats (time player, k/d ratio).
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/178348559-cb6294e0-7b6a-4748-9545-c680c7969d7a.png)
+<img width="262" height="291" src="docs/img/command-example-vehicles.png" />
 
 ### /maps
 
@@ -93,7 +93,7 @@ Show a player's per-map stats (time played, win rate).
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/188514748-bc7de362-2ddf-4cb4-88fd-695ab2aebf0d.png)
+<img width="396" height="603" src="docs/img/command-example-maps.png" />
 
 ### /leaderboard score
 
@@ -109,7 +109,7 @@ Show a page of the player leaderboard sorted by score.
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/179085431-5e7611fa-f6d3-4923-9b16-f82bee008bef.png)
+<img width="291" height="535" src="docs/img/command-example-leaderboard-score.png" />
 
 ### /leaderboard weapon
 
@@ -125,7 +125,7 @@ Show a page of the player leaderboard sorted by kills in a given weapon category
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/179086689-f4a9da9a-6572-4ab0-886d-b28fc6e149ed.png)
+<img width="333" height="535" src="docs/img/command-example-leaderboard-weapon.png" />
 
 ### /leaderboard vehicle
 
@@ -141,7 +141,7 @@ Show a page of the player leaderboard sorted by kills in a given vehicle categor
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/179087459-2ac1dc5a-0cf9-4472-a179-5581debac9e1.png)
+<img width="319" height="535" src="docs/img/command-example-leaderboard-vehicle.png" />
 
 ### /leaderboard kit
 
@@ -157,4 +157,19 @@ Show a page of the player leaderboard sorted by kills with a given kit.
 
 #### Example
 
-![](https://user-images.githubusercontent.com/17167062/179087616-88b42b07-1b1b-40ab-ab4a-f8afd8dbb17d.png)
+<img width="306" height="535" src="docs/img/command-example-leaderboard-kit.png" />
+
+### /activity
+
+Get a player's recent online activity
+
+#### Options
+
+| Name     | Description                                  | Required | Note                                 |
+|----------|----------------------------------------------|----------|--------------------------------------|
+| provider | BF2 revive provider the player is using      | yes      | possible values: `BF2Hub`, `PlayBF2` |
+| name     | Name of the player (without clan tag/prefix) | yes      |                                      |
+
+#### Example
+
+<img width="441" height="350" src="docs/img/command-example-activity.png" />
