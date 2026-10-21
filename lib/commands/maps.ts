@@ -1,19 +1,21 @@
 import axios from 'axios';
-import {
-    ApplicationCommandOptionType,
-    AutocompleteInteraction,
-    ChatInputCommandInteraction,
-    EmbedBuilder, escapeMarkdown
-} from 'discord.js';
+import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, escapeMarkdown } from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
-import { ArmyStatsColumns, Command, Player, PlayerInfoResponse } from './typing';
+import { Provider } from '../types';
+import { Command, MapStatsColumns, Player, PlayerMapInfoResponse } from './types';
 import cmdLogger from './logger';
-import { createStatsEmbed, fetchPlayerNameOptionChoices, formatTimePlayed, longestStringLen, resolvePlayerByName } from './utility';
+import {
+    createStatsEmbed,
+    fetchPlayerNameOptionChoices,
+    filterInvalidEntries,
+    formatTimePlayed,
+    longestStringLen,
+    resolvePlayerByName
+} from './utility';
 
-export const armies: Command = {
-    name: 'armies',
-    description: 'Get a player\'s army stats',
+export const maps: Command = {
+    name: 'maps',
+    description: 'Get a player\'s map stats',
     options: [
         {
             name: 'provider',
@@ -56,13 +58,13 @@ export const armies: Command = {
         }
 
         const url = new URL(
-            `/v2/players/${Provider[player.provider]}/by-id/${player.pid}/stats`,
+            `/v2/players/${Provider[player.provider]}/by-id/${player.pid}/maps`,
             'https://aspxstats.cetteup.com/'
         );
 
         try {
             const resp = await axios.get(url.toString());
-            const embed = formatArmyStats(player, resp.data);
+            const embed = formatMapStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
@@ -78,28 +80,29 @@ export const armies: Command = {
     }
 };
 
-function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
-    const timeWithsFormatted = data.armies.map((k) => {
-        return formatTimePlayed(k.time);
-    });
-    const wls = data.armies.map((k) => {
-        const wl = k.wins / (k.losses || 1);
-        return wl.toFixed(2);
-    });
+function formatMapStats(player: Player, { data }: PlayerMapInfoResponse): EmbedBuilder {
+    const maps = filterInvalidEntries(data.maps, Constants.INVALID_MAP_IDS, false);
+    const timeWithsFormatted: Record<number, string> = {};
+    const winRates: Record<number, string> = {};
+    for (const m of maps) {
+        timeWithsFormatted[m.id] = formatTimePlayed(m.time);
+        const winRate = m.wins / (m.wins + m.losses || 1) * 100;
+        winRates[m.id] = `${winRate.toFixed(2)}%`;
+    }
 
     const padding = 4;
-    const columns: ArmyStatsColumns = {
-        army: {
-            width: longestStringLen(Constants.ARMY_LABELS, 14),
-            heading: 'Army'
+    const columns: MapStatsColumns = {
+        name: {
+            width: longestStringLen(Object.values(Constants.MAP_LABELS), 10),
+            heading: 'Map'
         },
         timeWith: {
-            width: longestStringLen(timeWithsFormatted, 7),
+            width: longestStringLen(Object.values(timeWithsFormatted), 7),
             heading: 'Time'
         },
-        wl: {
-            width: longestStringLen(wls, 5),
-            heading: 'W/L'
+        winRate: {
+            width: longestStringLen(Object.values(winRates), 5),
+            heading: 'Win rate'
         }
     };
 
@@ -108,7 +111,7 @@ function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBui
 
     // Add table headers
     let totalWidth = 0;
-    const keys = Object.keys(columns) as (keyof ArmyStatsColumns)[];
+    const keys = Object.keys(columns) as (keyof MapStatsColumns)[];
     for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
@@ -124,13 +127,14 @@ function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBui
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    for (const armyInfo of data.armies) {
-        const timeWith = timeWithsFormatted[armyInfo.id];
-        const wl = wls[armyInfo.id];
+    for (const mapInfo of maps) {
+        const timeWith = timeWithsFormatted[mapInfo.id];
+        const winRate = winRates[mapInfo.id];
 
-        formatted += Constants.ARMY_LABELS[armyInfo.id].padEnd(columns.army.width);
+        formatted += Constants.MAP_LABELS[mapInfo.id].padEnd(columns.name.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
-        formatted += wl.padEnd(columns.wl.width);
+        // No need for the usual padStart(width - padding) plus padEnd(padding), since win rate is the last column
+        formatted += winRate.padStart(columns.winRate.width);
         formatted += '\n';
     }
 
@@ -139,8 +143,7 @@ function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBui
 
     return createStatsEmbed({
         player: player,
-        title: `Army stats for ${escapeMarkdown(player.name)}`,
+        title: `Map stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
-        lastBattle: data.timestamp.last_battle
     });
 }

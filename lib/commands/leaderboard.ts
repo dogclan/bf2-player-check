@@ -1,6 +1,6 @@
-import { Command, LeaderboardColumns, PlayerLeaderboardResponse } from './typing';
+import { Command, LeaderboardColumns, PlayerLeaderboardResponse } from './types';
 import Constants from '../constants';
-import { LeaderboardCategory, LeaderboardScoreType, Provider } from '../typing';
+import { LeaderboardCategory, LeaderboardScoreType, Provider } from '../types';
 import {
     ApplicationCommandNumericOptionData,
     ApplicationCommandOptionType,

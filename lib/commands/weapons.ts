@@ -1,8 +1,13 @@
 import axios from 'axios';
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, escapeMarkdown } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    EmbedBuilder, escapeMarkdown
+} from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
-import { Command, MapStatsColumns, Player, PlayerMapInfoResponse } from './typing';
+import { Provider } from '../types';
+import { Command, Player, PlayerInfoResponse, WeaponStatsColumns } from './types';
 import cmdLogger from './logger';
 import {
     createStatsEmbed,
@@ -13,9 +18,9 @@ import {
     resolvePlayerByName
 } from './utility';
 
-export const maps: Command = {
-    name: 'maps',
-    description: 'Get a player\'s map stats',
+export const weapons: Command = {
+    name: 'weapons',
+    description: 'Get a player\'s weapon stats',
     options: [
         {
             name: 'provider',
@@ -58,13 +63,13 @@ export const maps: Command = {
         }
 
         const url = new URL(
-            `/v2/players/${Provider[player.provider]}/by-id/${player.pid}/maps`,
+            `/v2/players/${Provider[player.provider]}/by-id/${player.pid}/stats`,
             'https://aspxstats.cetteup.com/'
         );
 
         try {
             const resp = await axios.get(url.toString());
-            const embed = formatMapStats(player, resp.data);
+            const embed = formatWeaponStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
@@ -80,29 +85,35 @@ export const maps: Command = {
     }
 };
 
-function formatMapStats(player: Player, { data }: PlayerMapInfoResponse): EmbedBuilder {
-    const maps = filterInvalidEntries(data.maps, Constants.INVALID_MAP_IDS, false);
-    const timeWithsFormatted: Record<number, string> = {};
-    const winRates: Record<number, string> = {};
-    for (const m of maps) {
-        timeWithsFormatted[m.id] = formatTimePlayed(m.time);
-        const winRate = m.wins / (m.wins + m.losses || 1) * 100;
-        winRates[m.id] = `${winRate.toFixed(2)}%`;
-    }
+function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
+    // Skip last weapon category since it's stats are always 0
+    const weapons = filterInvalidEntries(data.weapons, Constants.INVALID_WEAPON_IDS);
+    const timeWithsFormatted = weapons.map((w) => {
+        const seconds = Number(w.time);
+        return formatTimePlayed(seconds);
+    });
+    const kds = weapons.map((w) => {
+        const kd = w.kills / (w.deaths || 1);
+        return kd.toFixed(2);
+    });
 
     const padding = 4;
-    const columns: MapStatsColumns = {
-        name: {
-            width: longestStringLen(Object.values(Constants.MAP_LABELS), 10),
-            heading: 'Map'
+    const columns: WeaponStatsColumns = {
+        category: {
+            width: longestStringLen(Constants.WEAPON_CATEGORY_LABELS, 10),
+            heading: 'Category'
         },
         timeWith: {
-            width: longestStringLen(Object.values(timeWithsFormatted), 7),
+            width: longestStringLen(timeWithsFormatted, 7),
             heading: 'Time'
         },
-        winRate: {
-            width: longestStringLen(Object.values(winRates), 5),
-            heading: 'Win rate'
+        kd: {
+            width: longestStringLen(kds, 5),
+            heading: 'K/D'
+        },
+        accuracy: {
+            width: 6,
+            heading: 'Acc.'
         }
     };
 
@@ -111,7 +122,7 @@ function formatMapStats(player: Player, { data }: PlayerMapInfoResponse): EmbedB
 
     // Add table headers
     let totalWidth = 0;
-    const keys = Object.keys(columns) as (keyof MapStatsColumns)[];
+    const keys = Object.keys(columns) as (keyof WeaponStatsColumns)[];
     for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
@@ -127,14 +138,15 @@ function formatMapStats(player: Player, { data }: PlayerMapInfoResponse): EmbedB
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    for (const mapInfo of maps) {
-        const timeWith = timeWithsFormatted[mapInfo.id];
-        const winRate = winRates[mapInfo.id];
+    for (const weaponInfo of weapons) {
+        const timeWith = timeWithsFormatted[weaponInfo.id];
+        const kd = kds[weaponInfo.id];
+        const accuracy = `${weaponInfo.accuracy.toFixed(2)}%`;
 
-        formatted += Constants.MAP_LABELS[mapInfo.id].padEnd(columns.name.width);
+        formatted += Constants.WEAPON_CATEGORY_LABELS[weaponInfo.id].padEnd(columns.category.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
-        // No need for the usual padStart(width - padding) plus padEnd(padding), since win rate is the last column
-        formatted += winRate.padStart(columns.winRate.width);
+        formatted += kd.padEnd(columns.kd.width);
+        formatted += accuracy.padEnd(columns.accuracy.width);
         formatted += '\n';
     }
 
@@ -143,7 +155,8 @@ function formatMapStats(player: Player, { data }: PlayerMapInfoResponse): EmbedB
 
     return createStatsEmbed({
         player: player,
-        title: `Map stats for ${escapeMarkdown(player.name)}`,
+        title: `Weapon stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
+        lastBattle: data.timestamp.last_battle
     });
 }

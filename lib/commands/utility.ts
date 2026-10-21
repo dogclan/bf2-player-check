@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { Provider } from '../typing';
+import { Provider } from '../types';
 import Constants from '../constants';
 import { ColorResolvable, EmbedAuthorData, EmbedBuilder, EmbedData, EmbedFooterData } from 'discord.js';
 import Config from '../config';
-import { KitInfo, MapInfo, Player, RegistryPlayersResponse, VehicleInfo, WeaponInfo } from './typing';
+import { KitInfo, MapInfo, Player, RegistryPlayersResponse, VehicleInfo, WeaponInfo } from './types';
 
 export async function fetchPlayerNameOptionChoices(provider: number | null, focusedValue: string): Promise<{ name: string, value: string }[]> {
     // Skip searches for if we have nothing to search for

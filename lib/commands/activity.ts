@@ -1,4 +1,4 @@
-import { ActivityColumns, Command, Player } from './typing';
+import { ActivityColumns, Command, Player } from './types';
 import {
     ApplicationCommandOptionType,
     AutocompleteInteraction,
@@ -9,7 +9,7 @@ import {
     escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
+import { Provider } from '../types';
 import axios from 'axios';
 import {
     createEmbed,

@@ -1,2 +1,10 @@
+.github
+.idea
+docs
+dist
 node_modules
 npm-debug.log
+.tool-versions
+eslint.config.mjs
+README.md
+renovate.json

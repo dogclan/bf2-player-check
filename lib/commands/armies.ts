@@ -6,14 +6,14 @@ import {
     EmbedBuilder, escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
-import { Command, Player, PlayerInfoResponse, VehicleStatsColumns } from './typing';
+import { Provider } from '../types';
+import { ArmyStatsColumns, Command, Player, PlayerInfoResponse } from './types';
 import cmdLogger from './logger';
 import { createStatsEmbed, fetchPlayerNameOptionChoices, formatTimePlayed, longestStringLen, resolvePlayerByName } from './utility';
 
-export const kits: Command = {
-    name: 'kits',
-    description: 'Get a player\'s kit stats',
+export const armies: Command = {
+    name: 'armies',
+    description: 'Get a player\'s army stats',
     options: [
         {
             name: 'provider',
@@ -62,7 +62,7 @@ export const kits: Command = {
 
         try {
             const resp = await axios.get(url.toString());
-            const embed = formatKitStats(player, resp.data);
+            const embed = formatArmyStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
@@ -78,28 +78,28 @@ export const kits: Command = {
     }
 };
 
-function formatKitStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
-    const timeWithsFormatted = data.kits.map((k) => {
+function formatArmyStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
+    const timeWithsFormatted = data.armies.map((k) => {
         return formatTimePlayed(k.time);
     });
-    const kds = data.kits.map((k) => {
-        const kd = k.kills / (k.deaths || 1);
-        return kd.toFixed(2);
+    const wls = data.armies.map((k) => {
+        const wl = k.wins / (k.losses || 1);
+        return wl.toFixed(2);
     });
 
     const padding = 4;
-    const columns: VehicleStatsColumns = {
-        category: {
-            width: longestStringLen(Constants.KIT_LABELS, 10),
-            heading: 'Kit'
+    const columns: ArmyStatsColumns = {
+        army: {
+            width: longestStringLen(Constants.ARMY_LABELS, 14),
+            heading: 'Army'
         },
         timeWith: {
             width: longestStringLen(timeWithsFormatted, 7),
             heading: 'Time'
         },
-        kd: {
-            width: longestStringLen(kds, 5),
-            heading: 'K/D'
+        wl: {
+            width: longestStringLen(wls, 5),
+            heading: 'W/L'
         }
     };
 
@@ -108,7 +108,7 @@ function formatKitStats(player: Player, { data }: PlayerInfoResponse): EmbedBuil
 
     // Add table headers
     let totalWidth = 0;
-    const keys = Object.keys(columns) as (keyof VehicleStatsColumns)[];
+    const keys = Object.keys(columns) as (keyof ArmyStatsColumns)[];
     for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
@@ -124,13 +124,13 @@ function formatKitStats(player: Player, { data }: PlayerInfoResponse): EmbedBuil
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    for (const kitInfo of data.kits) {
-        const timeWith = timeWithsFormatted[kitInfo.id];
-        const kd = kds[kitInfo.id];
+    for (const armyInfo of data.armies) {
+        const timeWith = timeWithsFormatted[armyInfo.id];
+        const wl = wls[armyInfo.id];
 
-        formatted += Constants.KIT_LABELS[kitInfo.id].padEnd(columns.category.width);
+        formatted += Constants.ARMY_LABELS[armyInfo.id].padEnd(columns.army.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
-        formatted += kd.padEnd(columns.kd.width);
+        formatted += wl.padEnd(columns.wl.width);
         formatted += '\n';
     }
 
@@ -139,7 +139,7 @@ function formatKitStats(player: Player, { data }: PlayerInfoResponse): EmbedBuil
 
     return createStatsEmbed({
         player: player,
-        title: `Kit stats for ${escapeMarkdown(player.name)}`,
+        title: `Army stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
         lastBattle: data.timestamp.last_battle
     });

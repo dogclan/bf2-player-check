@@ -3,27 +3,24 @@ import {
     ApplicationCommandOptionType,
     AutocompleteInteraction,
     ChatInputCommandInteraction,
-    EmbedBuilder,
-    EmbedField, escapeMarkdown
+    EmbedBuilder, escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
-import { Command, Player, PlayerInfoResponse } from './typing';
+import { Provider } from '../types';
+import { Command, Player, PlayerInfoResponse, VehicleStatsColumns } from './types';
 import cmdLogger from './logger';
 import {
-    createEmbed,
+    createStatsEmbed,
     fetchPlayerNameOptionChoices,
     filterInvalidEntries,
     formatTimePlayed,
-    formatTimestamp,
-    getAuthorURL,
-    resolvePlayerByName,
-    sortByKillsAndTimeAsc
+    longestStringLen,
+    resolvePlayerByName
 } from './utility';
 
-export const summary: Command = {
-    name: 'summary',
-    description: 'Get a summary of a player\'s stats',
+export const vehicles: Command = {
+    name: 'vehicles',
+    description: 'Get a player\'s vehicle stats',
     options: [
         {
             name: 'provider',
@@ -44,6 +41,7 @@ export const summary: Command = {
         }
     ],
     execute: async (interaction: ChatInputCommandInteraction) => {
+        // Two request might take a moment => defer reply
         await interaction.deferReply();
         const provider = interaction.options.getInteger('provider', true) as Provider;
         const name = interaction.options.getString('name', true);
@@ -71,7 +69,7 @@ export const summary: Command = {
 
         try {
             const resp = await axios.get(url.toString());
-            const embed = formatStatsSummary(player, resp.data);
+            const embed = formatVehicleStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
@@ -87,41 +85,71 @@ export const summary: Command = {
     }
 };
 
-function formatStatsSummary(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
-    const bestKitId = data.kits.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 1;
+function formatVehicleStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
+    // Ignore fifth vehicle since it's values are always 0
     const vehicles = filterInvalidEntries(data.vehicles, Constants.INVALID_VEHICLE_IDS);
-    const bestVehicleId = vehicles.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
-    const weapons = filterInvalidEntries(data.weapons, Constants.INVALID_WEAPON_IDS);
-    const bestWeaponId = weapons.slice().sort(sortByKillsAndTimeAsc).pop()?.id ?? 5;
-    const fields: EmbedField[] = [
-        { name: 'Time', value: formatTimePlayed(data.time.total), inline: true },
-        { name: 'Score per minute', value: data.score.per_minute.toFixed(2), inline: true },
-        { name: 'Kills per minute', value: data.kills.per_minute.toFixed(2), inline: true },
-        { name: 'K/D', value: (data.kills.total / (data.deaths.total || 1)).toFixed(2), inline: true },
-        { name: 'W/L', value: (data.rounds.wins / (data.rounds.losses || 1)).toFixed(2), inline: true },
-        { name: 'Accuracy', value: `${data.accuracy.toFixed(2)}%`, inline: true },
-        { name: 'Best kit', value: Constants.KIT_LABELS[bestKitId], inline: true },
-        { name: 'Best weapon', value: Constants.WEAPON_CATEGORY_LABELS[bestWeaponId], inline: true },
-        { name: 'Best vehicle', value: Constants.VEHICLE_CATEGORY_LABELS[bestVehicleId], inline: true },
-        { name: 'Enlisted', value: formatTimestamp(data.timestamp.joined), inline: true },
-        { name: 'Last battle', value: formatTimestamp(data.timestamp.last_battle), inline: true },
-    ];
-
-    const embed = createEmbed({
-        title: `Stats summary for ${escapeMarkdown(player.name)}`,
-        description: '',
-        fields,
-        author: {
-            name: Constants.PROVIDER_LABELS[player.provider],
-            iconURL: Constants.PROVIDER_ICONS[player.provider],
-            url: getAuthorURL(player)
-        },
-        footer: {
-            text: `Player ID: ${player.pid}`
-        }
+    const timeWithsFormatted = vehicles.map((v) => {
+        return formatTimePlayed(v.time);
+    });
+    const kds = vehicles.map((v) => {
+        const kd = v.kills / (v.deaths || 1);
+        return kd.toFixed(2);
     });
 
-    embed.setThumbnail(`https://cdn.gametools.network/bf2/${data.rank}.png`);
+    const padding = 4;
+    const columns: VehicleStatsColumns = {
+        category: {
+            width: longestStringLen(Constants.VEHICLE_CATEGORY_LABELS, 10),
+            heading: 'Category'
+        },
+        timeWith: {
+            width: longestStringLen(timeWithsFormatted, 7),
+            heading: 'Time'
+        },
+        kd: {
+            width: longestStringLen(kds, 5),
+            heading: 'K/D'
+        }
+    };
 
-    return embed;
+    // Start markdown embed
+    let formatted = '```\n';
+
+    // Add table headers
+    let totalWidth = 0;
+    const keys = Object.keys(columns) as (keyof VehicleStatsColumns)[];
+    for (const [index, key] of keys.entries()) {
+        const column = columns[key];
+
+        // Add a few spaces of padding after columns, except for the last one
+        column.width = index == keys.length - 1 ? column.width : column.width + padding;
+
+        formatted += column.heading.padEnd(column.width, ' ');
+        totalWidth += column.width;
+    }
+
+    formatted += '\n';
+
+    // Add separator
+    formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
+
+    for (const vehicleInfo of vehicles) {
+        const timeWith = timeWithsFormatted[vehicleInfo.id];
+        const kd = kds[vehicleInfo.id];
+
+        formatted += Constants.VEHICLE_CATEGORY_LABELS[vehicleInfo.id].padEnd(columns.category.width);
+        formatted += timeWith.padEnd(columns.timeWith.width);
+        formatted += kd.padEnd(columns.kd.width);
+        formatted += '\n';
+    }
+
+    // End markdown embed
+    formatted += '```';
+
+    return createStatsEmbed({
+        player: player,
+        title: `Vehicle stats for ${escapeMarkdown(player.name)}`,
+        description: formatted,
+        lastBattle: data.timestamp.last_battle
+    });
 }

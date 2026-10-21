@@ -1,4 +1,4 @@
-import { LeaderboardCategory, LeaderboardScoreType, Provider } from './typing';
+import { LeaderboardCategory, LeaderboardScoreType, Provider } from './types';
 
 export default abstract class Constants {
     public static readonly PROVIDER_LABELS = {

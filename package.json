@@ -2,16 +2,16 @@
   "name": "bf2-player-check",
   "version": "1.5.0",
   "description": "Search BF2 players across GameSpy-replacement providers and check their stats via a Discord bot",
-  "main": "dist/src/index.js",
+  "main": "dist/bin/bot.js",
   "private": true,
   "engines": {
     "node": "24.22.0"
   },
   "scripts": {
     "build-ts": "tsc -b",
-    "start": "node dist/src/index.js",
+    "start": "node dist/bin/bot.js",
     "watch-ts": "tsc -w",
-    "lint": "npx eslint \"src/**\" \"lib/**\" --fix"
+    "lint": "npx eslint \"bin/**\" \"lib/**\" --fix"
   },
   "repository": {
     "type": "git",

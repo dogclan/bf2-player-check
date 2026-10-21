@@ -6,7 +6,7 @@ import {
     Interaction
 } from 'discord.js';
 import { Logger } from 'tslog';
-import { Command } from './commands/typing';
+import { Command } from './commands/types';
 import { search } from './commands/search';
 import { summary } from './commands/summary';
 import { weapons } from './commands/weapons';
@@ -18,7 +18,7 @@ import { maps } from './commands/maps';
 import { armies } from './commands/armies';
 import { activity } from './commands/activity';
 
-class PlayerCheckBot {
+class Bot {
     private token: string;
 
     private client: Client;
@@ -43,7 +43,9 @@ class PlayerCheckBot {
             vehicles,
             weapons
         ];
+    }
 
+    private setupEventListeners(): void {
         this.client.once('clientReady', () => {
             this.client.user?.presence.set({ status: 'online' });
 
@@ -71,9 +73,6 @@ class PlayerCheckBot {
                 }
             }
         });
-
-        logger.info('Logging into Discord using token');
-        this.client.login(this.token);
     }
 
     private async handleChatInputCommand(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -101,6 +100,13 @@ class PlayerCheckBot {
 
         await command.autocomplete(interaction);
     }
+
+    public async run(): Promise<void> {
+        this.setupEventListeners();
+
+        this.logger.info('Logging into Discord using token');
+        await this.client.login(this.token);
+    }
 }
 
-export default PlayerCheckBot;
+export default Bot;

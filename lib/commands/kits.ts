@@ -6,21 +6,14 @@ import {
     EmbedBuilder, escapeMarkdown
 } from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
-import { Command, Player, PlayerInfoResponse, WeaponStatsColumns } from './typing';
+import { Provider } from '../types';
+import { Command, Player, PlayerInfoResponse, VehicleStatsColumns } from './types';
 import cmdLogger from './logger';
-import {
-    createStatsEmbed,
-    fetchPlayerNameOptionChoices,
-    filterInvalidEntries,
-    formatTimePlayed,
-    longestStringLen,
-    resolvePlayerByName
-} from './utility';
+import { createStatsEmbed, fetchPlayerNameOptionChoices, formatTimePlayed, longestStringLen, resolvePlayerByName } from './utility';
 
-export const weapons: Command = {
-    name: 'weapons',
-    description: 'Get a player\'s weapon stats',
+export const kits: Command = {
+    name: 'kits',
+    description: 'Get a player\'s kit stats',
     options: [
         {
             name: 'provider',
@@ -69,7 +62,7 @@ export const weapons: Command = {
 
         try {
             const resp = await axios.get(url.toString());
-            const embed = formatWeaponStats(player, resp.data);
+            const embed = formatKitStats(player, resp.data);
             await interaction.editReply({ embeds: [embed] });
         }
         catch (e: any) {
@@ -85,23 +78,20 @@ export const weapons: Command = {
     }
 };
 
-function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
-    // Skip last weapon category since it's stats are always 0
-    const weapons = filterInvalidEntries(data.weapons, Constants.INVALID_WEAPON_IDS);
-    const timeWithsFormatted = weapons.map((w) => {
-        const seconds = Number(w.time);
-        return formatTimePlayed(seconds);
+function formatKitStats(player: Player, { data }: PlayerInfoResponse): EmbedBuilder {
+    const timeWithsFormatted = data.kits.map((k) => {
+        return formatTimePlayed(k.time);
     });
-    const kds = weapons.map((w) => {
-        const kd = w.kills / (w.deaths || 1);
+    const kds = data.kits.map((k) => {
+        const kd = k.kills / (k.deaths || 1);
         return kd.toFixed(2);
     });
 
     const padding = 4;
-    const columns: WeaponStatsColumns = {
+    const columns: VehicleStatsColumns = {
         category: {
-            width: longestStringLen(Constants.WEAPON_CATEGORY_LABELS, 10),
-            heading: 'Category'
+            width: longestStringLen(Constants.KIT_LABELS, 10),
+            heading: 'Kit'
         },
         timeWith: {
             width: longestStringLen(timeWithsFormatted, 7),
@@ -110,10 +100,6 @@ function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedB
         kd: {
             width: longestStringLen(kds, 5),
             heading: 'K/D'
-        },
-        accuracy: {
-            width: 6,
-            heading: 'Acc.'
         }
     };
 
@@ -122,7 +108,7 @@ function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedB
 
     // Add table headers
     let totalWidth = 0;
-    const keys = Object.keys(columns) as (keyof WeaponStatsColumns)[];
+    const keys = Object.keys(columns) as (keyof VehicleStatsColumns)[];
     for (const [index, key] of keys.entries()) {
         const column = columns[key];
 
@@ -138,15 +124,13 @@ function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedB
     // Add separator
     formatted += `${'-'.padEnd(totalWidth, '-')}\n`;
 
-    for (const weaponInfo of weapons) {
-        const timeWith = timeWithsFormatted[weaponInfo.id];
-        const kd = kds[weaponInfo.id];
-        const accuracy = `${weaponInfo.accuracy.toFixed(2)}%`;
+    for (const kitInfo of data.kits) {
+        const timeWith = timeWithsFormatted[kitInfo.id];
+        const kd = kds[kitInfo.id];
 
-        formatted += Constants.WEAPON_CATEGORY_LABELS[weaponInfo.id].padEnd(columns.category.width);
+        formatted += Constants.KIT_LABELS[kitInfo.id].padEnd(columns.category.width);
         formatted += timeWith.padEnd(columns.timeWith.width);
         formatted += kd.padEnd(columns.kd.width);
-        formatted += accuracy.padEnd(columns.accuracy.width);
         formatted += '\n';
     }
 
@@ -155,7 +139,7 @@ function formatWeaponStats(player: Player, { data }: PlayerInfoResponse): EmbedB
 
     return createStatsEmbed({
         player: player,
-        title: `Weapon stats for ${escapeMarkdown(player.name)}`,
+        title: `Kit stats for ${escapeMarkdown(player.name)}`,
         description: formatted,
         lastBattle: data.timestamp.last_battle
     });

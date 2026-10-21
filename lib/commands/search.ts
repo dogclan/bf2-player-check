@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import Constants from '../constants';
-import { Provider } from '../typing';
-import { Command, EnrichedRegistryPlayer, RegistryPlayersResponse, SearchColumns } from './typing';
+import { Provider } from '../types';
+import { Command, EnrichedRegistryPlayer, RegistryPlayersResponse, SearchColumns } from './types';
 import cmdLogger from './logger';
 import { createEmbed, fitStringToLength, longestStringLen } from './utility';
-import { getServers, Server } from '../../lib/bflist';
+import { getServers, Server } from '../bflist';
 
 export const search: Command = {
     name: 'search',
