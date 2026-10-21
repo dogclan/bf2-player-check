@@ -2,15 +2,10 @@ import axios from 'axios';
 import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import Constants from '../constants';
 import { Provider } from '../typing';
-import {
-    BflistServer,
-    Command,
-    EnrichedRegistryPlayer,
-    RegistryPlayersResponse,
-    SearchColumns
-} from './typing';
+import { Command, EnrichedRegistryPlayer, RegistryPlayersResponse, SearchColumns } from './typing';
 import cmdLogger from './logger';
 import { createEmbed, fitStringToLength, longestStringLen } from './utility';
+import { getServers, Server } from '../../lib/bflist';
 
 export const search: Command = {
     name: 'search',
@@ -57,28 +52,13 @@ export const search: Command = {
             return;
         }
 
-        const servers: BflistServer[] = [];
-        let page = 1;
-        let hasNextPage: boolean;
-        do {
-            const url = new URL(
-                `/bf2/v1/servers/${page}`,
-                'https://api.bflist.io/'
-            );
-
-            url.searchParams.set('perPage', '100');
-
-            try {
-                const resp = await axios.get(url.toString());
-                servers.push(...resp.data);
-                hasNextPage = page < Number(resp.headers?.['x-total-pages'] ?? 1);
-                page++;
-            }
-            catch (e: any) {
-                cmdLogger.error('Failed to fetch page of BF2 servers', e?.response?.status, e?.code);
-                hasNextPage = false;
-            }
-        } while (hasNextPage);
+        let servers: Server[] = [];
+        try {
+            servers = await getServers();
+        } catch (e: unknown) {
+            const error = axios.isAxiosError(e) ? e : undefined;
+            cmdLogger.error('Failed to fetch servers from bflist', error?.response?.status, error?.code);
+        }
 
         const players: EnrichedRegistryPlayer[] = [];
         for (const player of data.players) {

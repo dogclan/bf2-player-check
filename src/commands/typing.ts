@@ -179,14 +179,3 @@ export type RegistryPlayer = {
 export type EnrichedRegistryPlayer = RegistryPlayer & {
     server?: string
 }
-
-export type BflistServer = {
-    name: string
-    players: BflistPlayer[]
-}
-
-export type BflistPlayer = {
-    pid: number
-    name: string
-    tag: string
-}
