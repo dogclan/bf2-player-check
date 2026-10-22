@@ -38,7 +38,7 @@ export const search: Command = {
             'https://api.registry.bf2.co/'
         );
 
-        url.searchParams.set('nick', name + '*');
+        url.searchParams.set('nick', name + '!');
         url.searchParams.set('provider', Provider[provider]);
 
         let data: RegistryPlayersResponse;

@@ -20,7 +20,7 @@ export async function fetchPlayerNameOptionChoices(provider: number | null, focu
         'https://api.registry.bf2.co/'
     );
 
-    url.searchParams.set('nick', focusedValue + '*');
+    url.searchParams.set('nick', focusedValue + '!');
     url.searchParams.set('provider', Provider[provider]);
 
     const resp = await axios.get<RegistryPlayersResponse>(url.toString());
