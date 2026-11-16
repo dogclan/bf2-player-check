@@ -37,7 +37,7 @@
     "@tsconfig/node24": "24.0.5",
     "@typescript-eslint/eslint-plugin": "8.72.0",
     "@typescript-eslint/parser": "8.72.0",
-    "eslint": "10.13.0",
+    "eslint": "10.15.0",
     "globals": "17.13.0",
     "typescript": "5.9.3"
   },
